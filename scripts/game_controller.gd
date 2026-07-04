@@ -12,7 +12,7 @@ const TREASURE_LAYER: int = CollisionLayers.TREASURE
 const EXIT_LAYER: int = CollisionLayers.EXIT
 const COVER_LAYER: int = CollisionLayers.COVER
 
-enum RunState { SEARCHING, ANCHOR_PROMPT, EXTRACTED }
+enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED}
 
 var run_state: RunState = RunState.SEARCHING
 var world_rect: Rect2

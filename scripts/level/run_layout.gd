@@ -6,7 +6,7 @@ const WORLD_RECT := Rect2(Vector2.ZERO, Vector2(5000, 5000))
 static func build() -> Dictionary:
 	return {
 		"world_rect": WORLD_RECT,
-		"player_spawn": Vector2(170, 320),
+		"player_spawn": Vector2(200, 320),
 		"anchor_spawn": Vector2(2020, 1160),
 		"chests": [
 			{"position": Vector2(430, 360)},

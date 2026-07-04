@@ -13,7 +13,6 @@ const ChestScenePath := "res://scenes/props/chest_box.tscn"
 
 func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	var world_rect: Rect2 = layout["world_rect"]
-	_spawn_sea_floor(containers["background"], world_rect)
 	_spawn_boundaries(containers["cover"], world_rect)
 	_spawn_solid_cover(containers["cover"], layout["solid_cover"])
 	_spawn_seaweed(containers["cover"], layout["seaweed"])
@@ -32,13 +31,6 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 		"monsters": monsters,
 		"world_rect": world_rect,
 	}
-
-
-func _spawn_sea_floor(parent: Node, world_rect: Rect2) -> void:
-	var sea_floor := SeaFloorScene.instantiate()
-	sea_floor.name = "SeaFloor"
-	parent.add_child(sea_floor)
-	sea_floor.configure(world_rect)
 
 
 func _spawn_boundaries(parent: Node, world_rect: Rect2) -> void:
