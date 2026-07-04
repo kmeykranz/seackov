@@ -10,6 +10,7 @@ const CHEST_OPEN_PATH := "res://assets/sound/effect/chest_open.mp3"
 const MONSTER_DISCOVERED_PATH := "res://assets/sound/effect/npc/monster_discovered.mp3"
 const BUBBLE_PATH := "res://assets/sound/music/bubble.mp3"
 const FAIL_PATH := "res://assets/sound/effect/fail.mp3"
+const FAIL_SCENE_MUSIC_PATH := "res://assets/sound/music/fail_scene.mp3"
 
 
 var _music_player: AudioStreamPlayer
@@ -104,3 +105,11 @@ func _on_ambient_finished() -> void:
 func play_fail() -> void:
 	_sfx_player.stream = load(FAIL_PATH)
 	_sfx_player.play()
+
+
+func play_fail_scene_music() -> void:
+	var path := FAIL_SCENE_MUSIC_PATH
+	if _music_player.stream != null and _music_player.stream.resource_path == path and _music_player.playing:
+		return
+	_music_player.stream = load(path)
+	_music_player.play()

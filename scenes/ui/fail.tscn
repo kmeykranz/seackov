@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://baydcxclmo5p5"]
+
+[ext_resource type="Script" uid="uid://2p0gvpuduagn" path="res://scenes/ui/fail.gd" id="1_61vlv"]
+[ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="1_x8iaa"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_q2wf2"]
+[ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="3_q2wf2"]
+
+[node name="Fail" type="Control" unique_id=956027760]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_61vlv")
+
+[node name="background" type="Sprite2D" parent="." unique_id=444650320]
+modulate = Color(0.3017725, 0.3017725, 0.3017725, 0.6666667)
+position = Vector2(960, 540.00006)
+scale = Vector2(1.237911, 1.0009267)
+texture = ExtResource("1_x8iaa")
+
+[node name="title" type="Label" parent="." unique_id=1590484686]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -190.0
+offset_top = 200.0
+offset_right = 216.0
+offset_bottom = 310.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.44313726, 0.015686275, 0.015686275, 1)
+theme_override_colors/font_shadow_color = Color(0, 0.16862746, 0.21176471, 1)
+theme_override_colors/font_outline_color = Color(1, 0.2, 0, 1)
+theme_override_fonts/font = ExtResource("2_q2wf2")
+theme_override_font_sizes/font_size = 100
+text = "你死了!!"
+
+[node name="reason" type="Label" parent="." unique_id=1635123294]
+layout_mode = 0
+offset_left = 626.0
+offset_top = 432.0
+offset_right = 1343.0
+offset_bottom = 507.0
+theme_override_colors/font_color = Color(0.64575267, 0.7149622, 0.639649, 1)
+theme_override_colors/font_shadow_color = Color(0.40660143, 0.35291994, 0.2031056, 1)
+theme_override_colors/font_outline_color = Color(0.47843137, 0.41960785, 0.30980393, 1)
+theme_override_font_sizes/font_size = 54
+text = "你成为了章鱼美味可口的宵夜!"
+
+[node name="back" type="Button" parent="." unique_id=824696900]
+layout_mode = 0
+offset_left = 848.0
+offset_top = 728.0
+offset_right = 1090.0
+offset_bottom = 794.0
+theme_override_fonts/font = ExtResource("3_q2wf2")
+theme_override_font_sizes/font_size = 50
+text = "BACK"
