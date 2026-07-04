@@ -11,6 +11,8 @@ const ACTION_MISSION := "mission"
 
 var _transitioning: bool = false
 var _available_actions: Array[String] = []
+var _hull_world_polygon: PackedVector2Array
+var _player_last_safe_pos: Vector2
 
 @onready var _interaction_areas := {
 	ACTION_DIVE: $World/Manhole,
@@ -35,6 +37,17 @@ var _available_actions: Array[String] = []
 func _ready() -> void:
 	set_process_unhandled_input(true)
 	MusicManager.play_boat_music()
+	_configure_player_collision()
+
+	# Hull 多边形边界 —— 计算世界坐标多边形
+	var hull_area: Area2D = $World/Hull
+	var hull_collision: CollisionPolygon2D = $World/Hull/HullCollision
+	_hull_world_polygon = _to_world_polygon(hull_area, hull_collision, hull_collision.polygon)
+	_player_last_safe_pos = $World/PlayerDiver.global_position
+
+	# 确保 Hull 的 collision_mask 能检测到玩家
+	hull_area.collision_mask = 1 << 0  # PLAYER
+
 	for action in _interaction_areas.keys():
 		var area: Area2D = _interaction_areas[action]
 		area.body_entered.connect(_on_interaction_body_entered.bind(action))
@@ -86,6 +99,35 @@ func perform_interaction(action: String) -> bool:
 			return true
 
 	return false
+
+
+func _configure_player_collision() -> void:
+	var player := $World/PlayerDiver as CharacterBody2D
+	player.collision_layer = 1 << 0   # PLAYER
+	player.collision_mask = 1 << 1    # WALL
+	var cam := player.get_node("Camera2D") as Camera2D
+	cam.limit_left = 0
+	cam.limit_top = 0
+	cam.limit_right = 1920
+	cam.limit_bottom = 1080
+	cam.make_current()
+
+
+func _process(_delta: float) -> void:
+	# _process 在 _physics_process 之后运行，确保 move_and_slide 已执行完毕
+	var player := $World/PlayerDiver
+	if Geometry2D.is_point_in_polygon(player.global_position, _hull_world_polygon):
+		_player_last_safe_pos = player.global_position
+	else:
+		player.global_position = _player_last_safe_pos
+
+
+func _to_world_polygon(area: Area2D, collision_node: CollisionPolygon2D, local_poly: PackedVector2Array) -> PackedVector2Array:
+	var world := PackedVector2Array()
+	var offset: Vector2 = area.global_position + collision_node.position
+	for pt in local_poly:
+		world.append(offset + pt)
+	return world
 
 
 func _on_interaction_body_entered(body: Node, action: String) -> void:

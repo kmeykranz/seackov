@@ -29,7 +29,13 @@ script = ExtResource("1_5rki1")
 color = Color(0.02, 0.07, 0.1, 1)
 polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 1080, 0, 1080)
 
-[node name="Hull" type="Polygon2D" parent="World" unique_id=1338346408]
+[node name="Hull" type="Area2D" parent="World" unique_id=1569621322]
+
+[node name="HullCollision" type="CollisionPolygon2D" parent="World/Hull" unique_id=1399160268]
+position = Vector2(960, 72)
+polygon = PackedVector2Array(0, 0, 264, 160, 416, 848, 352, 952, -352, 944, -416, 848, -272, 160)
+
+[node name="Hull" type="Polygon2D" parent="World/Hull" unique_id=1338346408]
 color = Color(0.13, 0.18, 0.22, 1)
 polygon = PackedVector2Array(960, 74, 1228, 232, 1376, 922, 1314, 1018, 606, 1018, 544, 922, 692, 232)
 
