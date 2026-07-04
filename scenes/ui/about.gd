@@ -28,6 +28,9 @@ func _ready() -> void:
 	# 初次震动在 3~8 秒后随机触发
 	_time_until_next_shake = randf_range(3.0, 7.0)
 
+	# —— 背景音乐（autoload 单例，场景切换不中断） ——
+	MusicManager.play_lobby_music()
+
 	$back.pressed.connect(_on_back_pressed)
 
 
