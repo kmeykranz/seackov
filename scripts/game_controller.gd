@@ -359,11 +359,13 @@ func open_pause_menu() -> void:
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
 	get_tree().paused = true
+	_set_gameplay_enabled(false)
 	_pause_menu.open_panel()
 
 
 func resume_from_pause() -> void:
 	_leave_pause_mode()
+	_set_gameplay_enabled(true)
 
 
 func show_pause_settings() -> void:
