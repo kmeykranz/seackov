@@ -27,7 +27,8 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Opening a chest grants one random item rarity and places that item into the backpack immediately.
 - A patrolling monster follows a fixed loop, uses a front-facing cone plus line-of-sight check, and does not detect the player when the player is hidden in seaweed or blocked by solid cover.
 - When the monster sees the player, all current-run carried treasure is cleared from the haul and backpack immediately while already banked, warehouse, and uploaded treasure remains unchanged.
-- When the player touches a monster, the backpack is emptied, gameplay ends, and the scene returns to the boat.
+- When the player touches a monster, the backpack is emptied, gameplay ends, and the failure scene opens.
+- The failure scene has a return button that sends the player back to the boat.
 - Pressing `Esc` opens a pause menu with resume, settings, and exit-to-main-menu options, and no return-to-ship option.
 - The anchor exit only offers extraction choices while the player is standing in the anchor area.
 - Choosing extraction at the anchor banks all carried treasure, keeps recovered items already in the cross-scene backpack without duplicating them, and returns to the boat scene.

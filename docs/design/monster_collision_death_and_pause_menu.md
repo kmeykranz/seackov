@@ -1,7 +1,7 @@
 # Monster Collision Death And Pause Menu Design
 
 ## Problem Definition
-The player can physically wedge against a monster and be dragged along by `CharacterBody2D` collision response. Monster contact should instead be a fail state: the backpack is emptied and the run returns to the boat. The run also needs an `Esc` pause menu with resume, settings, and exit-to-main-menu options, but no return-to-boat option because boat return must come from extraction or death.
+The player can physically wedge against a monster and be dragged along by `CharacterBody2D` collision response. Monster contact should instead be a fail state: the backpack is emptied, the run opens the failure scene, and the failure scene can return to the boat. The run also needs an `Esc` pause menu with resume, settings, and exit-to-main-menu options, but no return-to-boat option because boat return must come from extraction or death.
 
 ## References
 - Godot pause behavior is controlled by `SceneTree.paused`; nodes that need to keep receiving UI/input while paused should use a process mode that runs during pause: https://docs.godotengine.org/en/stable/tutorials/scripting/pausing_games.html
@@ -16,10 +16,12 @@ The player can physically wedge against a monster and be dragged along by `Chara
 States:
 - `Searching`: player can move, collect, be seen, and touch monsters.
 - `Caught`: monster collision has ended the run; backpack is cleared and gameplay is disabled.
-- `ReturnedToBoat`: scene changes to the boat.
+- `FailureScene`: failure page is visible after being caught.
+- `ReturnedToBoat`: failure page return button changes to the boat.
 
 Events:
-- `monster_collision`: `Searching -> Caught -> ReturnedToBoat`.
+- `monster_collision`: `Searching -> Caught -> FailureScene`.
+- `failure_return_selected`: `FailureScene -> ReturnedToBoat`.
 - `monster_sight`: keeps the existing sight penalty behavior unless collision occurs.
 
 Guards:
@@ -29,7 +31,7 @@ Guards:
 Side Effects:
 - Current backpack slots are emptied.
 - Carried value and carried rarity counts are zeroed.
-- The scene changes to the boat scene.
+- The scene changes to the failure scene, then the failure page return button changes to the boat scene.
 
 ## Pause State Machine
 States:
@@ -59,7 +61,8 @@ Restore monster body collision with the player, remove collision-death handling 
 
 ## Primitive Acceptance Criteria
 - Monster body collision does not physically drag the player.
-- Entering a monster catch area clears the backpack and returns to the boat.
+- Entering a monster catch area clears the backpack and opens the failure scene.
+- Pressing the failure scene return button returns to the boat.
 - Pressing `Esc` opens a pause menu.
 - Resume closes pause and unpauses the run.
 - Settings is available as a pause-menu option.

@@ -41,7 +41,7 @@ func _run() -> void:
 	progress.reset_save()
 	inventory.reset_runtime_state()
 	_test_map_population_distribution()
-	await _test_monster_collision_death_returns_boat()
+	await _test_monster_collision_death_opens_failure_scene()
 	progress.reset_save()
 	inventory.reset_runtime_state()
 	var scene := load("res://scenes/run_scene.tscn")
@@ -111,7 +111,7 @@ func _test_map_population_distribution() -> void:
 	_assert(_treasure_value_weight_in_region(layout["treasures"], 4) > _treasure_value_weight_in_region(layout["treasures"], 1), "leftmost region has more valuable treasure mix")
 
 
-func _test_monster_collision_death_returns_boat() -> void:
+func _test_monster_collision_death_opens_failure_scene() -> void:
 	var scene := load("res://scenes/run_scene.tscn")
 	_assert(scene != null, "run scene loads for monster collision death")
 	if scene == null:
@@ -128,13 +128,19 @@ func _test_monster_collision_death_returns_boat() -> void:
 	collision_run.carried_value = 25
 	collision_run._on_monster_detected_player(collision_run.monsters[0], "collision")
 	_assert(collision_run.run_state == RunSceneControllerScript.RunState.CAUGHT, "monster collision changes the run to caught state")
-	await process_frame
-	await process_frame
-	await process_frame
+	for index in range(45):
+		await process_frame
+
+	var fail_scene = current_scene
+	_assert(fail_scene != null and fail_scene.name == "Fail", "monster collision opens the failure scene")
+	_assert(inventory.get_backpack_total_count() == 0, "monster collision death empties the backpack")
+	if fail_scene != null and fail_scene.has_node("back"):
+		fail_scene.get_node("back").pressed.emit()
+		await process_frame
+		await process_frame
 
 	var boat = current_scene
-	_assert(boat != null and boat.name == "BoatScene", "monster collision returns to boat scene")
-	_assert(inventory.get_backpack_total_count() == 0, "monster collision death empties the backpack")
+	_assert(boat != null and boat.name == "BoatScene", "failure scene return button returns to boat scene")
 	if boat != null:
 		boat.queue_free()
 		if current_scene == boat:

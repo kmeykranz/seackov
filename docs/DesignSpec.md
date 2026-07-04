@@ -29,7 +29,7 @@ States:
 - `SEARCHING`: Player can move, collect treasure, be detected, and enter the anchor.
 - `ANCHOR_PROMPT`: Player is standing in the anchor area and can choose extract or continue.
 - `EXTRACTED`: Carried treasure has been banked and the player is returned to the boat scene.
-- `CAUGHT`: Monster contact has emptied the backpack, disabled gameplay, and started the return to the boat.
+- `CAUGHT`: Monster contact has emptied the backpack, disabled gameplay, and started the failure-page transition.
 
 Events:
 - `press_b`: Opens or closes the backpack-only grid UI.
@@ -41,7 +41,8 @@ Events:
 - `uploaded_legendary_changed`: Unlocks additional regions at every two uploaded legendary items.
 - `progress_changed`: Refreshes locked-region fog and player soft boundary.
 - `player_detected`: Clears carried haul and removes current-run carried counts from backpack slots.
-- `monster_collision`: `SEARCHING -> CAUGHT`, empties backpack, disables gameplay, and transitions to the boat scene.
+- `monster_collision`: `SEARCHING -> CAUGHT`, empties backpack, disables gameplay, and transitions to the failure scene.
+- `failure_return_selected`: transitions from the failure scene to the boat scene.
 - `anchor_entered`: `SEARCHING -> ANCHOR_PROMPT`.
 - `anchor_exited`: `ANCHOR_PROMPT -> SEARCHING`.
 - `continue_selected`: `ANCHOR_PROMPT -> SEARCHING`.
@@ -62,7 +63,8 @@ Side Effects:
 - Treasure collection removes the pickup from the map.
 - Chest opening marks the chest opened and emits exactly one reward item.
 - Sight detection clears only current-run carried treasure from score and backpack.
-- Monster contact clears the whole backpack, zeroes carried haul, disables gameplay, and returns to the boat scene.
+- Monster contact clears the whole backpack, zeroes carried haul, disables gameplay, and opens the failure scene.
+- The failure scene return button changes to the boat scene.
 - Pause sets `SceneTree.paused`, resume clears it, settings stays paused, and exit clears pause before switching to the main menu.
 - Extraction moves carried treasure into the run banked summary, keeps already-added backpack items without adding another copy, disables active gameplay, and returns to the boat scene.
 - Locked-region fog is rebuilt after progression changes.
@@ -111,7 +113,7 @@ Events:
 - `right_click_slot`: takes half a stack when hand is empty, otherwise places one item into a compatible slot.
 - `shift_click_slot`: quick-transfers the clicked stack to the other storage location.
 - `player_detected`: removes current-run carried counts from backpack.
-- `monster_collision`: clears all backpack slots before returning to the boat.
+- `monster_collision`: clears all backpack slots before opening the failure scene.
 - `upload_backpack`: all backpack items move to uploaded counts and add research points.
 
 Guards:

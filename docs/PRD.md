@@ -28,7 +28,8 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Monster patrol uses fixed waypoints.
 - Monster detection requires player to be inside the front cone, within range, not hidden, and not blocked by solid cover.
 - Monster sight detection clears the carried haul and removes current-run carried items from the backpack.
-- Monster contact empties the backpack, ends the run, and returns to the boat scene.
+- Monster contact empties the backpack, ends the run, and opens the failure scene.
+- The failure scene can return the player to the boat scene.
 - Pressing `Esc` in the run scene opens a pause menu with resume, settings, and exit-to-main-menu options.
 - The pause menu must not provide a return-to-ship option.
 - The anchor shows extract/continue choices only while the player is inside the anchor area.

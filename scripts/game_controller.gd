@@ -6,6 +6,7 @@ const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
 const LobbyScenePath := "res://scenes/ui/lobby.tscn"
+const FailScenePath := "res://scenes/ui/fail.tscn"
 const STORAGE_BACKPACK := "backpack"
 
 const PLAYER_LAYER: int = CollisionLayers.PLAYER
@@ -208,7 +209,7 @@ func handle_player_caught(reason: String) -> void:
 	_refresh_backpack_ui()
 	_stop_bubble()
 	_leave_pause_mode()
-	get_tree().change_scene_to_file(BoatScenePath)
+	_transition_to_fail_page()
 
 
 func is_anchor_prompt_visible() -> bool:
@@ -572,6 +573,10 @@ func _stop_bubble() -> void:
 	var mgr: Node = _music_manager()
 	if mgr != null:
 		mgr.stop_bubble()
+
+
+func _transition_to_fail_page() -> void:
+	get_tree().change_scene_to_file(FailScenePath)
 
 
 func _progress():

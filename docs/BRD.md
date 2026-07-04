@@ -14,7 +14,7 @@ In scope:
 - Persistent region progression with the rightmost region open first.
 - Full-map population where lower-x regions contain denser risk and higher rewards.
 - Main-menu debug save controls for progression testing.
-- Patrol monster sight penalty and contact death return.
+- Patrol monster sight penalty and contact failure page.
 - Anchor extraction prompt and end-of-run banking.
 - Debug-accessible boat scene with dive hatch, mission console, purifier device, upload device, and warehouse.
 - Runtime backpack and warehouse interactions across the run and boat scenes.
