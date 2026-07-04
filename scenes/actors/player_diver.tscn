@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://b1j7wbs0i4a54" path="res://scripts/player_diver.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://c1jxgqyydh73k" path="res://assets/player-stand.png" id="2_kn255"]
 [ext_resource type="Texture2D" uid="uid://ee65f3wqidbf" path="res://assets/player-down.png" id="3_5m5js"]
-[ext_resource type="Texture2D" uid="uid://c0p8jctxm4hey" path="res://assets/player-left.png" id="3_tnxdv"]
+[ext_resource type="Texture2D" uid="uid://t0k8h3nd30f7" path="res://assets/player-left.png" id="3_tnxdv"]
 [ext_resource type="Texture2D" uid="uid://co3haj0ctitti" path="res://assets/player-up.png" id="4_eaxf8"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
@@ -193,6 +193,16 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="Gradient" id="Gradient_0w2ic"]
+offsets = PackedFloat32Array(0, 0.013559322, 0.39322034, 0.96101695, 1)
+colors = PackedColorArray(1, 1, 0.81960785, 1, 0.9728814, 0.9728814, 0.7973812, 1, 0.56860715, 0.56860715, 0.46603486, 1, 0.09695387, 0.09695387, 0.07946414, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1l68p"]
+gradient = SubResource("Gradient_0w2ic")
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_1l68p"]
 radius = 26.476404
 
@@ -211,7 +221,15 @@ polygon = PackedVector2Array(0, -42, 30, -30, 42, 0, 30, 30, 0, 42, -30, 30, -42
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=116086953]
 scale = Vector2(0.12, 0.12)
 sprite_frames = SubResource("SpriteFrames_1l68p")
-animation = &"up"
+animation = &"walk"
+frame_progress = 0.0694772
+
+[node name="PointLight2D" type="PointLight2D" parent="." unique_id=1047637214]
+z_as_relative = false
+position = Vector2(0, -9.536743e-07)
+scale = Vector2(2.015625, 2.015625)
+texture = SubResource("GradientTexture2D_1l68p")
+texture_scale = 3.91
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1466824116]
 position_smoothing_enabled = true

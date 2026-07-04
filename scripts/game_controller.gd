@@ -123,7 +123,7 @@ func _physics_process(_delta: float) -> void:
 	elif overlapping_anchor == null and player_on_anchor:
 		_on_anchor_player_exited()
 
-	_update_draw_order()
+	#_update_draw_order()
 
 
 func choose_extract() -> void:
