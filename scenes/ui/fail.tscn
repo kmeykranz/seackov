@@ -45,6 +45,7 @@ offset_bottom = 507.0
 theme_override_colors/font_color = Color(0.64575267, 0.7149622, 0.639649, 1)
 theme_override_colors/font_shadow_color = Color(0.40660143, 0.35291994, 0.2031056, 1)
 theme_override_colors/font_outline_color = Color(0.47843137, 0.41960785, 0.30980393, 1)
+theme_override_fonts/font = ExtResource("2_q2wf2")
 theme_override_font_sizes/font_size = 54
 text = "你成为了章鱼美味可口的宵夜!"
 

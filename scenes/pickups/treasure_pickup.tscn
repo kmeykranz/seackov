@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://dcq3duidc788l"]
 
 [ext_resource type="Script" uid="uid://dk1ajam6a35kt" path="res://scripts/treasure_pickup.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_font"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_treasure"]
 radius = 24.0
@@ -24,4 +25,6 @@ offset_left = -19.0
 offset_top = 23.0
 offset_right = 35.0
 offset_bottom = 46.0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
 text = "25"

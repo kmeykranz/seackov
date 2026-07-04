@@ -11,6 +11,8 @@ Implement one underwater run where the player collects recovered objects, avoids
 - The player moves in 2D using keyboard input with smooth acceleration and deceleration.
 - Pressing `Space` performs a short dash that gives an impulse and temporarily raises the maximum speed before curving back to normal movement.
 - The map is bounded by segmented wall pieces and contains solid cover, coral cover, and seaweed hiding zones.
+- The run scene depth filter is almost clear in the rightmost region and becomes progressively darker toward the leftmost region.
+- Depth filter strength remains fixed inside each region and changes linearly only inside the boundary band between neighboring regions.
 - The generated run layout has exactly seven authored anchors.
 - Seaweed, coral, treasures, chests, and monsters populate the full authored map.
 - Lower-x regions contain more chests, more monsters, and a more valuable treasure mix.
@@ -21,6 +23,15 @@ Implement one underwater run where the player collects recovered objects, avoids
 - The outer map perimeter also slows the player near the edge and pushes the player back inward.
 - Pressing `M` in the run scene opens or closes a floating minimap showing full unlocked regions.
 - Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks one more region until the authored regions are open.
+- Entering mapped story regions discovers knowledge, but knowledge only unlocks tools after successful extraction and boat upload.
+- The run HUD shows selected tool, uses, cooldown, and preparation progress.
+- Number keys select unlocked tools, and holding `Q` prepares or deploys the selected tool.
+- Toxic net is a consumable prepared tool that disarms monsters in front of the player.
+- Turtle armor can be equipped, blocks one monster-contact death, knocks back nearby monsters, and then breaks.
+- Propeller booster is a reusable prepared tool that gives a forward burst and then enters cooldown.
+- Freeze trap is a consumable hold-to-deploy tool that locks player movement during deployment and stuns monsters in range when triggered.
+- Magma bomb is a consumable prepared tool that removes monsters in a small blast radius.
+- Electric whip is a reusable charged tool that stuns the first monster in front and then enters cooldown.
 - Treasures are visible pickups with common, rare, and legendary rarities.
 - Pressing `B` in the run scene opens or closes a backpack-only grid UI.
 - Collecting treasure increases the carried haul and places the item into the backpack immediately.
@@ -32,6 +43,7 @@ Implement one underwater run where the player collects recovered objects, avoids
 - The failure scene can return the player to the boat scene.
 - Pressing `Esc` in the run scene opens a pause menu with resume, settings, and exit-to-main-menu options.
 - The pause menu must not provide a return-to-ship option.
+- Pause, minimap, storage, anchor prompt, and failure overlays use the main menu Chinese font where they show text, and centered modal panels are centered in the viewport.
 - The anchor shows extract/continue choices only while the player is inside the anchor area.
 - Extracting banks carried treasure, keeps recovered backpack items without duplicating them, and returns to the boat scene.
 - Continuing closes the prompt and keeps the run active.
@@ -43,9 +55,10 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Picking up a stack shows the held item icon and count next to the mouse cursor.
 - Left-click takes or places a whole stack.
 - Right-click takes half a stack when the hand is empty, or places one item when holding a stack.
-- Shift-click quickly transfers a stack between backpack and warehouse.
+- Holding the shift key while clicking quickly transfers a stack between backpack and warehouse.
 - Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload interaction moves all backpack items into uploaded records and increases research points.
+- Player-facing UI copy is Chinese except keyboard key names and proper nouns.
 
 ## Non-Functional Requirements
 - Use Godot 4.7-compatible GDScript and built-in 2D nodes.

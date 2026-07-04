@@ -11,4 +11,4 @@ Players who enjoy short-session action roguelite loops and stealth-risk decision
 A flooded Earth recovery dive where every extra pickup visibly fills the backpack and increases pressure because monster sight can wipe the current-run haul, while direct contact ends the dive on a failure page before returning to the boat.
 
 ## Prototype Positioning
-This build validates the single-run loop, a minimal boat-side item handling loop, escalating leftward map risk/reward density, and the first persistent exploration unlock before adding full campaign flow, broader save data, procedural generation, or later story areas.
+This build validates the single-run loop, a minimal boat-side item handling loop, escalating leftward map risk/reward density, the first persistent exploration unlock, and a placeholder tool system driven by discovered story knowledge before adding full campaign flow, broader save data, procedural generation, or later story areas.

@@ -89,7 +89,7 @@ func perform_interaction(action: String) -> bool:
 			_upload_backpack()
 			return true
 		ACTION_WAREHOUSE:
-			open_storage_ui("仓库已打开：左键整组，右键半组/单个，Shift+点击快速转移。")
+			open_storage_ui("仓库已打开：左键整组，右键半组/单个，按住换挡键点击快速转移。")
 			return true
 		ACTION_PURIFIER:
 			_show_message("净化装置：降落冲击导致核心散成碎片。先把海底回收物带回船上，再决定存放或上传分析。")
@@ -146,15 +146,29 @@ func _on_interaction_body_exited(body: Node, action: String) -> void:
 func _upload_backpack() -> void:
 	var inventory = _inventory()
 	var result: Dictionary = inventory.upload_all_from_backpack()
-	if result["total_count"] <= 0:
-		_show_message("上传装置：背包为空，没有可传输的样本或碎片。")
-	else:
-		var progress = _progress()
+	var progress = _progress()
+	var knowledge_result := {"knowledge_ids": [], "tool_ids": []}
+	if progress != null and progress.has_method("upload_pending_knowledge"):
+		knowledge_result = progress.upload_pending_knowledge()
+
+	if result["total_count"] > 0:
 		if progress != null:
 			progress.record_uploaded_counts(result["counts"])
+	var unlocked_tools: Array = knowledge_result["tool_ids"]
+	if result["total_count"] <= 0 and unlocked_tools.is_empty():
+		_show_message("上传装置：背包为空，也没有待解析知识。")
+	elif unlocked_tools.is_empty():
 		_show_message("上传完成：%s，获得 %d 研究点。" % [
 			inventory.format_counts(result["counts"]),
 			result["value"],
+		])
+	elif result["total_count"] <= 0:
+		_show_message("知识解析完成，解锁道具：%s。" % progress.format_tool_ids(unlocked_tools))
+	else:
+		_show_message("上传完成：%s，获得 %d 研究点。知识解析解锁：%s。" % [
+			inventory.format_counts(result["counts"]),
+			result["value"],
+			progress.format_tool_ids(unlocked_tools),
 		])
 	_update_inventory_status()
 

@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://dgjbol7xqwf6n" path="res://scenes/ui/about.gd" id="1_w0w83"]
 [ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_m186m"]
 [ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="2_w0w83"]
-[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="3_m186m"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_m186m"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="5_w0w83"]
 
 [node name="About" type="Control" unique_id=2034737801]
@@ -90,4 +90,5 @@ offset_top = 745.00006
 offset_right = 1296.0
 offset_bottom = 768.00006
 scale = Vector2(1.105, 1.105)
-text = "(AI还是太好用了)"
+theme_override_fonts/font = ExtResource("5_w0w83")
+text = "(人工智能还是太好用了)"

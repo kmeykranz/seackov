@@ -18,6 +18,8 @@ In scope:
 - Anchor extraction prompt and end-of-run banking.
 - Debug-accessible boat scene with dive hatch, mission console, purifier device, upload device, and warehouse.
 - Runtime backpack and warehouse interactions across the run and boat scenes.
+- Story knowledge discovered during dives, uploaded on the boat, and converted into usable placeholder tools.
+- Placeholder active tools for disarm, armor block, propulsion, trap control, bomb removal, and electric stun.
 
 Out of scope:
 - Full ship-to-run campaign flow.
@@ -31,3 +33,4 @@ Out of scope:
 - The player can lose current-run carried treasure from the haul and backpack through detection, and direct monster contact clearly ends the dive.
 - The player can bank treasure only by extracting from the anchor.
 - Recovered items can be stored or uploaded after returning to the boat.
+- Discovering and uploading story knowledge makes later dives feel more capable through usable tools, even before final art or full encounter content exists.

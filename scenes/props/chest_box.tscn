@@ -1,6 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/chest_box.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_font"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_chest"]
 radius = 46.0
@@ -30,6 +31,8 @@ offset_left = -32.0
 offset_top = -46.0
 offset_right = 32.0
 offset_bottom = -22.0
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 16
 horizontal_alignment = 1
 text = "F 拾取"
 visible = false

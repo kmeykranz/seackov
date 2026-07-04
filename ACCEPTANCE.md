@@ -1,10 +1,10 @@
 # Acceptance
 
 ## Current Goal
-Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a persistent region progression loop, a debug-accessible boat scene, and a minimal runtime backpack loop.
+Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a persistent region progression loop, a debug-accessible boat scene, a minimal runtime backpack loop, and a usable placeholder tool system.
 
 ## Acceptance Criteria
-- The project launches into the main menu, and `Dive In` enters one underwater run scene.
+- The project launches into the main menu, and `开始下潜` enters one underwater run scene.
 - The main menu includes a temporary debug button that enters the boat scene.
 - The main menu includes a debug save menu that can reset progression, add uploaded legendary progress, unlock the next region, and lock progression back to the starting region.
 - Codex has both `godot-ai` and `godot-mcp` MCP servers configured for the local Godot editor bridges.
@@ -12,6 +12,8 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Player, monster, treasure, chest, anchor, solid cover, seaweed cover, coral cover, HUD, and pause menu are separate scenes instantiated into the run scene.
 - The player accelerates and decelerates smoothly around a bounded 2D sea-floor map with visible rocks, wreckage, and seaweed cover.
 - Pressing `Space` gives the player a short curved dash boost that temporarily raises the maximum speed before returning to normal.
+- The run scene depth filter is almost clear in the rightmost region and becomes darkest in the leftmost region.
+- Depth filter strength stays fixed inside each region and changes linearly only inside the boundary band between two neighboring regions.
 - The generated run layout has exactly seven authored anchors.
 - Seaweed, coral, treasures, chests, and monsters are distributed across the full authored map, not only the starting region.
 - Lower-x regions contain more chests, denser monsters, and a more valuable treasure mix than the rightmost starting region.
@@ -22,6 +24,15 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - The outer map boundary is built from visible segmented wall pieces, and approaching the boundary slows and pushes the player back inward.
 - Pressing `M` in the run scene opens or closes a floating minimap that shows the full unlocked regions.
 - Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks the next region until all authored regions are open.
+- Entering mapped story regions can discover knowledge, but knowledge only unlocks tools after the player extracts successfully and uploads it on the boat.
+- The run HUD shows the selected tool, remaining uses, cooldown, and preparation progress.
+- Number keys select unlocked tools, and holding `Q` prepares or deploys the selected tool.
+- Toxic net is a consumable prepared tool that disarms monsters in front of the player.
+- Turtle armor can be equipped, blocks one monster-contact death, knocks back nearby monsters, and then breaks.
+- Propeller booster is a reusable prepared tool that gives a forward burst and then enters cooldown.
+- Freeze trap is a consumable hold-to-deploy tool that locks player movement during deployment and stuns monsters in range when triggered.
+- Magma bomb is a consumable prepared tool that removes monsters in a small blast radius.
+- Electric whip is a reusable charged tool that stuns the first monster in front and then enters cooldown.
 - Pressing `B` in the run scene opens or closes a grid backpack UI that does not show warehouse slots.
 - Treasure pickups have common, rare, and legendary rarities, add their value to the carried haul, enter the backpack immediately, and have no capacity limit.
 - Opening a chest grants one random item rarity and places that item into the backpack immediately.
@@ -30,6 +41,7 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - When the player touches a monster, the backpack is emptied, gameplay ends, and the failure scene opens.
 - The failure scene has a return button that sends the player back to the boat.
 - Pressing `Esc` opens a pause menu with resume, settings, and exit-to-main-menu options, and no return-to-ship option.
+- Pause, minimap, storage, anchor prompt, and failure overlays use the main menu Chinese font where they show text, and centered modal panels are centered in the viewport.
 - The anchor exit only offers extraction choices while the player is standing in the anchor area.
 - Choosing extraction at the anchor banks all carried treasure, keeps recovered items already in the cross-scene backpack without duplicating them, and returns to the boat scene.
 - Choosing continue at the anchor hides the prompt and keeps the run playable.
@@ -40,11 +52,12 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Picking up a stack shows the held item icon and count next to the mouse cursor.
 - Left-click takes or places a whole stack.
 - Right-click takes half a stack when the hand is empty, or places one item when holding a stack.
-- Shift-click quickly transfers a stack between backpack and warehouse.
+- Holding the shift key while clicking quickly transfers a stack between backpack and warehouse.
+- Player-facing UI copy is Chinese except keyboard key names and proper nouns.
 - Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload device can move all backpack items into uploaded records and increase research points.
 - The warehouse UI can receive item stacks from backpack click operations and can send them back.
-- The implementation has a headless acceptance test covering scene loading, map population distribution, treasure collection, region progression, minimap UI, pause UI, run backpack UI, random chest rewards, sight penalty, monster collision death, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, debug save controls, and scene split structure.
+- The implementation has a headless acceptance test covering scene loading, map population distribution, depth filter plateau and boundary transition, Chinese UI font use, centered floating panels, story knowledge upload, tool unlocks, all six placeholder tool effects, treasure collection, region progression, minimap UI, pause UI, run backpack UI, random chest rewards, sight penalty, monster collision death, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, debug save controls, and scene split structure.
 
 ## Completion Measurement
 Completion is measured by the criteria above. This prototype is complete when all criteria pass in local Godot 4.7 validation.

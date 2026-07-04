@@ -3,6 +3,7 @@ extends SceneTree
 const RunSceneControllerScript := preload("res://scripts/game_controller.gd")
 const MonsterPatrolScript := preload("res://scripts/monster_patrol.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
+const MAIN_MENU_FONT_PATH := "res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf"
 
 const ENTITY_SCENE_PATHS := [
 	"res://scenes/actors/player_diver.tscn",
@@ -40,6 +41,9 @@ func _run() -> void:
 	await _test_upload_progression_unlocks()
 	progress.reset_save()
 	inventory.reset_runtime_state()
+	await _test_run_tool_system()
+	progress.reset_save()
+	inventory.reset_runtime_state()
 	_test_map_population_distribution()
 	await _test_monster_collision_death_opens_failure_scene()
 	progress.reset_save()
@@ -57,6 +61,7 @@ func _run() -> void:
 
 	_test_initial_state()
 	_test_scene_split_and_visibility()
+	_test_depth_lighting_gradient()
 	_test_pause_menu_controls()
 	await _test_player_movement_and_perimeter()
 	await _test_region_progression()
@@ -92,6 +97,85 @@ func _test_upload_progression_unlocks() -> void:
 	_assert(progress.get_uploaded_legendary_count() == 6, "uploaded legendary progress is persisted through all region thresholds")
 
 	boat.queue_free()
+	await process_frame
+
+
+func _test_run_tool_system() -> void:
+	var all_knowledge := [
+		"mangrove_toxins",
+		"shipwreck_drive",
+		"cold_current",
+		"volcano_heat",
+		"turtle_shell",
+		"electric_eel",
+	]
+	progress.record_recovered_knowledge(all_knowledge)
+	var upload_result: Dictionary = progress.upload_pending_knowledge()
+	_assert(upload_result["tool_ids"].size() == 6, "uploading story knowledge unlocks all placeholder tools")
+
+	var scene := load("res://scenes/run_scene.tscn")
+	_assert(scene != null, "run scene loads for tool system")
+	if scene == null:
+		return
+
+	var tool_run = scene.instantiate()
+	root.add_child(tool_run)
+	await process_frame
+	await physics_frame
+
+	var tool_system = tool_run.get_tool_system()
+	_assert(tool_system != null, "run tool system is available")
+	_assert(tool_system.get_unlocked_tool_ids().size() == 6, "run tool system exposes unlocked tools")
+	_assert(tool_run.get_node("RunHud/ToolPanel/MarginContainer/VBoxContainer/ToolLabel").text.contains("道具"), "run HUD displays tool status")
+
+	for monster in tool_run.monsters:
+		monster.set_active(false)
+
+	tool_run.player.global_position = Vector2(9000.0, 3000.0)
+	tool_run.player.facing = Vector2.RIGHT
+	var first_monster = tool_run.monsters[0]
+	first_monster.global_position = tool_run.player.global_position + Vector2(220.0, 0.0)
+	tool_system.select_tool_by_id("toxin_net")
+	tool_system.activate_tool("toxin_net")
+	_assert(first_monster.is_disarmed(), "toxin net disarms monsters in front")
+	_assert(tool_system.get_tool_count("toxin_net") == 0, "toxin net is consumed after use")
+
+	tool_system.select_tool_by_id("turtle_armor")
+	tool_system.activate_tool("turtle_armor")
+	_assert(tool_system.is_armor_active(), "turtle armor can be equipped")
+	tool_run.handle_player_caught("collision")
+	_assert(tool_run.run_state != RunSceneControllerScript.RunState.CAUGHT, "turtle armor blocks one monster contact death")
+	_assert(not tool_system.is_armor_active(), "turtle armor breaks after blocking")
+
+	var speed_before: float = tool_run.player.velocity.length()
+	tool_system.select_tool_by_id("propeller")
+	tool_system.activate_tool("propeller")
+	_assert(tool_run.player.velocity.length() > speed_before + 300.0, "propeller gives a forward burst")
+	_assert(tool_system.get_tool_cooldown("propeller") > 0.0, "propeller enters cooldown")
+
+	var freeze_monster = tool_run.monsters[1]
+	freeze_monster.global_position = tool_run.player.global_position
+	tool_system.select_tool_by_id("freeze_trap")
+	tool_system.activate_tool("freeze_trap")
+	tool_system._update_traps()
+	await process_frame
+	_assert(freeze_monster.is_stunned(), "freeze trap controls monsters when triggered")
+	_assert(tool_system.get_tool_count("freeze_trap") == 0, "freeze trap is consumed after deployment")
+
+	var bomb_monster = tool_run.monsters[2]
+	bomb_monster.global_position = tool_run.player.global_position + Vector2(300.0, 0.0)
+	tool_system.select_tool_by_id("magma_bomb")
+	tool_system.activate_tool("magma_bomb")
+	_assert(bomb_monster.is_queued_for_deletion(), "magma bomb removes monsters in its blast radius")
+
+	var whip_monster = tool_run.monsters[3]
+	whip_monster.global_position = tool_run.player.global_position + Vector2(260.0, 0.0)
+	tool_system.select_tool_by_id("electric_whip")
+	tool_system.activate_tool("electric_whip")
+	_assert(whip_monster.is_stunned(), "electric whip controls the first monster in front")
+	_assert(tool_system.get_tool_cooldown("electric_whip") > 0.0, "electric whip starts its cooldown")
+
+	tool_run.queue_free()
 	await process_frame
 
 
@@ -181,6 +265,10 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.has_node("PauseMenuUi"), "run pause menu UI is instanced")
 	_assert(game.player.has_node("BodyPivot"), "player placeholder art exists")
 	_assert(game.player.position.y >= 250.0, "player starts below the HUD area")
+	_assert_uses_main_menu_font(game.get_node("RunHud/StatusPanel/MarginContainer/StatusLabel"), "run HUD uses the main menu Chinese font")
+	_assert_uses_main_menu_font(game.get_node("StorageTransferUi/Panel/MarginContainer/VBoxContainer/Header/TitleLabel"), "storage UI uses the main menu Chinese font")
+	_assert_uses_main_menu_font(game.get_node("MiniMapUi/Panel/MarginContainer/VBoxContainer/Header/TitleLabel"), "minimap UI uses the main menu Chinese font")
+	_assert_uses_main_menu_font(game.get_node("PauseMenuUi/Panel/MarginContainer/VBoxContainer/TitleLabel"), "pause UI uses the main menu Chinese font")
 
 	var monster = game.monsters[0]
 	_assert(monster.has_node("VisionCone"), "monster vision placeholder exists")
@@ -194,6 +282,7 @@ func _test_scene_split_and_visibility() -> void:
 	game._unhandled_input(b_key)
 	_assert(game.is_backpack_ui_open(), "B opens run backpack UI")
 	_assert(not run_storage_ui.is_warehouse_visible(), "run backpack UI hides warehouse storage")
+	_assert(_is_centered_control(run_storage_ui.get_node("Panel")), "run backpack UI is centered")
 	game._unhandled_input(b_key)
 	_assert(not game.is_backpack_ui_open(), "B closes run backpack UI")
 
@@ -204,8 +293,40 @@ func _test_scene_split_and_visibility() -> void:
 	game._unhandled_input(m_key)
 	_assert(game.is_minimap_open(), "M opens run minimap UI")
 	_assert(game.get_minimap_visible_region_count() == 1, "fresh minimap shows only the first unlocked region")
+	_assert(_is_centered_control(game.get_node("MiniMapUi/Panel")), "minimap UI is centered")
 	game._unhandled_input(m_key)
 	_assert(not game.is_minimap_open(), "M closes run minimap UI")
+
+
+func _test_depth_lighting_gradient() -> void:
+	var right_region_color: Color = game.get_depth_light_color_at_x(10000.0)
+	var second_region_color: Color = game.get_depth_light_color_at_x(6000.0)
+	var third_region_color: Color = game.get_depth_light_color_at_x(3000.0)
+	var left_region_color: Color = game.get_depth_light_color_at_x(10.0)
+	var first_boundary := RunLayout.soft_boundary_x_for_unlocked_count(1)
+	var half_transition_width := RunSceneControllerScript.DEPTH_LIGHT_TRANSITION_WIDTH * 0.5
+
+	_assert(_color_luminance(right_region_color) > _color_luminance(second_region_color), "rightmost region has the lightest depth filter")
+	_assert(_color_luminance(second_region_color) > _color_luminance(third_region_color), "third region is darker than the second region")
+	_assert(_color_luminance(third_region_color) > _color_luminance(left_region_color), "leftmost region has the darkest depth filter")
+	_assert(_color_luminance(left_region_color) < 0.02, "leftmost region is very dark")
+
+	var region_one_plateau: Color = game.get_depth_light_color_at_x(first_boundary + half_transition_width + 40.0)
+	var region_two_plateau: Color = game.get_depth_light_color_at_x(first_boundary - half_transition_width - 40.0)
+	_assert(_colors_close(region_one_plateau, right_region_color, 0.001), "rightmost region keeps one fixed depth filter away from boundaries")
+	_assert(_colors_close(region_two_plateau, second_region_color, 0.001), "second region keeps one fixed depth filter away from boundaries")
+
+	var boundary_middle: Color = game.get_depth_light_color_at_x(first_boundary)
+	_assert(_color_luminance(right_region_color) > _color_luminance(boundary_middle), "depth filter starts darkening inside the boundary band")
+	_assert(_color_luminance(boundary_middle) > _color_luminance(second_region_color), "depth filter reaches the next layer after the boundary band")
+
+	game.player.global_position = Vector2(10000.0, 3000.0)
+	game._update_depth_lighting()
+	var current_right: Color = game.get_current_depth_light_color()
+	game.player.global_position = Vector2(10.0, 3000.0)
+	game._update_depth_lighting()
+	var current_left: Color = game.get_current_depth_light_color()
+	_assert(_color_luminance(current_right) > _color_luminance(current_left), "moving the player updates the active depth filter")
 
 
 func _test_pause_menu_controls() -> void:
@@ -220,6 +341,7 @@ func _test_pause_menu_controls() -> void:
 	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/ResumeButton"), "pause menu has a resume option")
 	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/SettingsButton"), "pause menu has a settings option")
 	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/ExitMenuButton"), "pause menu has an exit-to-menu option")
+	_assert(_is_centered_control(game.get_node("PauseMenuUi/Panel")), "pause menu is centered")
 	game.show_pause_settings()
 	game.resume_from_pause()
 	_assert(not game.is_pause_menu_open(), "resume closes the pause menu")
@@ -385,6 +507,7 @@ func _test_anchor_choices_and_extraction() -> void:
 	_assert(game.warehouse_value == value, "extracting banks carried value")
 	_assert(game.carried_value == 0, "extracting clears carried value")
 	_assert(inventory.get_backpack_total_count() == backpack_before + 1, "extracting keeps recovered backpack items without duplicating them")
+	_assert(progress.has_pending_knowledge(), "extracting brings discovered knowledge back for upload")
 	await process_frame
 	await process_frame
 	await process_frame
@@ -411,6 +534,7 @@ func _test_inventory_and_boat_scene() -> void:
 	_assert(boat.has_node("World/Warehouse"), "boat has warehouse")
 	_assert(boat.has_node("BoatHud/Panel/InventoryLabel"), "boat inventory HUD exists")
 	_assert(boat.has_node("StorageTransferUi"), "boat storage transfer UI exists")
+	_assert_uses_main_menu_font(boat.get_node("BoatHud/Panel/InventoryLabel"), "boat HUD uses the main menu Chinese font")
 
 	var storage_ui = boat.get_node("StorageTransferUi")
 	_assert(not boat.is_storage_ui_open(), "storage UI starts closed")
@@ -420,6 +544,7 @@ func _test_inventory_and_boat_scene() -> void:
 	b_key.pressed = true
 	boat._unhandled_input(b_key)
 	_assert(boat.is_storage_ui_open(), "B opens storage UI")
+	_assert(_is_centered_control(storage_ui.get_node("Panel")), "boat storage UI is centered")
 	boat._unhandled_input(b_key)
 	_assert(not boat.is_storage_ui_open(), "B closes storage UI")
 
@@ -479,6 +604,7 @@ func _test_inventory_and_boat_scene() -> void:
 	_assert(inventory.get_uploaded_count("common") == 5, "upload records common items")
 	_assert(inventory.get_uploaded_count("legendary") == 1, "upload records legendary items")
 	_assert(inventory.research_points == 325, "upload adds research points")
+	_assert(progress.is_tool_unlocked("toxin_net"), "uploading recovered knowledge unlocks its mapped tool")
 	_assert(boat.get_node("BoatHud/Panel/InventoryLabel").text.contains("研究点：325"), "boat HUD shows research points")
 
 	boat.queue_free()
@@ -584,6 +710,24 @@ func _treasure_value_weight_in_region(specs: Array, region_id: int) -> int:
 			"legendary":
 				value += 8
 	return value
+
+
+func _color_luminance(color: Color) -> float:
+	return color.r * 0.2126 + color.g * 0.7152 + color.b * 0.0722
+
+
+func _colors_close(first: Color, second: Color, tolerance: float) -> bool:
+	return absf(first.r - second.r) <= tolerance and absf(first.g - second.g) <= tolerance and absf(first.b - second.b) <= tolerance
+
+
+func _assert_uses_main_menu_font(control: Control, label: String) -> void:
+	var font: Font = control.get_theme_font("font")
+	_assert(font != null and font.resource_path == MAIN_MENU_FONT_PATH, label)
+
+
+func _is_centered_control(control: Control, tolerance: float = 2.0) -> bool:
+	var viewport_center := root.get_visible_rect().size * 0.5
+	return control.get_global_rect().get_center().distance_to(viewport_center) <= tolerance
 
 
 func _assert(condition: bool, label: String) -> void:

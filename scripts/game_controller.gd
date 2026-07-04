@@ -4,6 +4,7 @@ class_name RunSceneController
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
+const RunToolSystemScript := preload("res://scripts/items/run_tool_system.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
 const LobbyScenePath := "res://scenes/ui/lobby.tscn"
 const FailScenePath := "res://scenes/ui/fail.tscn"
@@ -16,6 +17,13 @@ const TREASURE_LAYER: int = CollisionLayers.TREASURE
 const EXIT_LAYER: int = CollisionLayers.EXIT
 const COVER_LAYER: int = CollisionLayers.COVER
 const DRAW_ORDER_SCALE := 0.5
+const DEPTH_LIGHT_COLORS := {
+	1: Color(0.96, 0.985, 1.0, 1.0),
+	2: Color(0.55, 0.70, 0.86, 1.0),
+	3: Color(0.20, 0.36, 0.55, 1.0),
+	4: Color(0.0, 0.015, 0.045, 1.0),
+}
+const DEPTH_LIGHT_TRANSITION_WIDTH := 520.0
 
 enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED, CAUGHT}
 
@@ -38,6 +46,7 @@ var regions: Array = []
 var locked_region_rects: Array = []
 var soft_boundary_x: float = -1.0
 var soft_boundary_margin: float = 520.0
+var _tool_system: Node
 
 var player_on_anchor: bool = false
 var carried_value: int = 0
@@ -60,10 +69,12 @@ var warehouse_counts := {
 @onready var _exit_container: Node2D = $World/Exits
 @onready var _actor_container: Node2D = $World/Actors
 @onready var _fog_container: Node2D = $World/Fog
+@onready var _effect_container: Node2D = $World/Effects
 @onready var _hud: CanvasLayer = $RunHud
 @onready var _storage_ui: CanvasLayer = $StorageTransferUi
 @onready var _minimap_ui: CanvasLayer = $MiniMapUi
 @onready var _pause_menu: CanvasLayer = $PauseMenuUi
+@onready var _depth_light: CanvasModulate = $CanvasModulate
 
 
 func _ready() -> void:
@@ -74,6 +85,8 @@ func _ready() -> void:
 	monsters_container = _actor_container
 	_build_level()
 	_wire_ui()
+	_setup_tool_system()
+	_update_depth_lighting()
 	_update_status()
 
 	var music_manager = _music_manager()
@@ -85,11 +98,22 @@ func _ready() -> void:
 	_hud.show_message("收集宝物，躲进海草，利用掩体，在锚点返回。")
 
 
+func _process(_delta: float) -> void:
+	_update_depth_lighting()
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if not (event is InputEventKey) or not event.pressed or event.echo:
+	if not (event is InputEventKey) or event.echo:
 		return
 
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
+		return
+
+	if not get_tree().paused and _tool_system != null and _tool_system.handle_key_event(event):
+		_handle_key_input()
+		return
+
+	if not event.pressed:
 		return
 
 	if event.keycode == KEY_ESCAPE:
@@ -151,6 +175,7 @@ func choose_extract() -> void:
 	_hud.hide_anchor_prompt()
 	_hud.show_end(warehouse_value)
 	_hud.show_message("本轮结束。")
+	_record_recovered_knowledge()
 	_update_status()
 	_leave_pause_mode()
 	_stop_bubble()
@@ -171,6 +196,7 @@ func handle_player_discovered(reason: String) -> void:
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
 
+	var reason_label := _detection_reason_label(reason)
 	var lost_value := carried_value
 	_return_backpack_cursor_stack()
 	_inventory().remove_counts_from_storage(STORAGE_BACKPACK, carried_counts)
@@ -180,16 +206,19 @@ func handle_player_discovered(reason: String) -> void:
 	_refresh_backpack_ui()
 
 	if lost_value > 0:
-		_hud.show_message("被 %s 发现，携带的宝物损失：%d。" % [reason, lost_value])
+		_hud.show_message("被%s发现，携带的宝物损失：%d。" % [reason_label, lost_value])
 	else:
-		_hud.show_message("被 %s 发现，但没有损失携带的宝物。" % reason)
+		_hud.show_message("被%s发现，但没有损失携带的宝物。" % reason_label)
 	_update_status()
 
 
 func handle_player_caught(reason: String) -> void:
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
+	if _tool_system != null and _tool_system.try_block_damage():
+		return
 
+	var reason_label := _detection_reason_label(reason)
 	var music_mgr: Node = _music_manager()
 	if music_mgr != null:
 		music_mgr.play_fail()
@@ -204,7 +233,7 @@ func handle_player_caught(reason: String) -> void:
 	active_anchor = null
 	_set_gameplay_enabled(false)
 	_hud.hide_anchor_prompt()
-	_hud.show_message("被 %s 抓到。背包已清空，正在返回船上。" % reason)
+	_hud.show_message("被%s抓到。背包已清空，正在返回船上。" % reason_label)
 	_update_status()
 	_refresh_backpack_ui()
 	_stop_bubble()
@@ -258,6 +287,51 @@ func get_cover_kind_count(kind: String) -> int:
 		if String(item.get_meta("cover_kind", "")) == kind:
 			count += 1
 	return count
+
+
+func get_depth_light_color_at_x(x_position: float) -> Color:
+	if regions.is_empty():
+		return _depth_light_color_for_region(1)
+
+	var rightmost_max := world_rect.end.x
+	var leftmost_min := world_rect.position.x
+	for region in regions:
+		rightmost_max = maxf(rightmost_max, float(region["x_max"]))
+		leftmost_min = minf(leftmost_min, float(region["x_min"]))
+
+	if x_position >= rightmost_max:
+		return _depth_light_color_for_region(1)
+	if x_position <= leftmost_min:
+		return _depth_light_color_for_region(_deepest_region_id())
+
+	var half_transition_width := DEPTH_LIGHT_TRANSITION_WIDTH * 0.5
+	for index in range(regions.size() - 1):
+		var shallow_region: Dictionary = regions[index]
+		var deep_region: Dictionary = regions[index + 1]
+		var boundary_x := float(shallow_region["x_min"])
+		var transition_start := boundary_x + half_transition_width
+		var transition_end := boundary_x - half_transition_width
+		if x_position <= transition_start and x_position >= transition_end:
+			var transition := clampf((transition_start - x_position) / DEPTH_LIGHT_TRANSITION_WIDTH, 0.0, 1.0)
+			return _depth_light_color_for_region(int(shallow_region["id"])).lerp(_depth_light_color_for_region(int(deep_region["id"])), transition)
+
+	for region in regions:
+		var region_id := int(region["id"])
+		var region_min := float(region["x_min"])
+		var region_max := float(region["x_max"])
+		if x_position < region_min or x_position > region_max:
+			continue
+		return _depth_light_color_for_region(region_id)
+
+	return _depth_light_color_for_region(_deepest_region_id())
+
+
+func get_current_depth_light_color() -> Color:
+	return _depth_light.color if _depth_light != null else _depth_light_color_for_region(1)
+
+
+func get_tool_system() -> Node:
+	return _tool_system
 
 
 func _build_level() -> void:
@@ -320,7 +394,7 @@ func _on_treasure_collected(treasure: Node) -> void:
 	var stored := _add_run_item_to_backpack(treasure.rarity, treasure.value)
 	treasures_remaining = maxi(0, treasures_remaining - 1)
 	if stored:
-		_hud.show_message("已收集 %s 宝物，价值 %d，放入背包。" % [treasure.rarity, treasure.value])
+		_hud.show_message("已收集%s，价值 %d，放入背包。" % [_inventory().get_rarity_label(treasure.rarity), treasure.value])
 	_update_status()
 
 
@@ -329,7 +403,7 @@ func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
 		return
 
 	if _add_run_item_to_backpack(rarity, value):
-		_hud.show_message("已打开宝箱，收入 %s 宝物，价值 %d。" % [rarity, value])
+		_hud.show_message("已打开宝箱，收入%s，价值 %d。" % [_inventory().get_rarity_label(rarity), value])
 	_update_status()
 
 
@@ -365,9 +439,13 @@ func _on_anchor_player_exited() -> void:
 
 
 func _set_gameplay_enabled(enabled: bool) -> void:
+	if not enabled and _tool_system != null:
+		_tool_system.cancel_use()
 	if player != null:
 		player.control_enabled = enabled
 	for monster in monsters:
+		if not is_instance_valid(monster):
+			continue
 		monster.set_active(enabled)
 
 
@@ -458,6 +536,28 @@ func _refresh_minimap_ui() -> void:
 	_minimap_ui.configure(world_rect, regions)
 	_minimap_ui.set_run_state(unlocked_region_count, anchors, spawn_anchor_id, player)
 	_minimap_ui.refresh()
+
+
+func _setup_tool_system() -> void:
+	_tool_system = RunToolSystemScript.new()
+	_tool_system.name = "RunToolSystem"
+	add_child(_tool_system)
+	_tool_system.message_requested.connect(_hud.show_message)
+	_tool_system.configure(player, monsters, regions, _effect_container, _hud, _progress())
+
+
+func _record_recovered_knowledge() -> void:
+	if _tool_system == null:
+		return
+	var recovered: Array = _tool_system.flush_recovered_knowledge()
+	if recovered.is_empty():
+		return
+	var progress = _progress()
+	if progress == null or not progress.has_method("record_recovered_knowledge"):
+		return
+	var added: Array[String] = progress.record_recovered_knowledge(recovered)
+	if not added.is_empty():
+		_hud.show_message("已带回 %d 条新知识，回船后可在上传装置解析。" % added.size())
 
 
 func _rebuild_locked_region_fog() -> void:
@@ -557,6 +657,31 @@ func _update_draw_order() -> void:
 
 func _draw_order_for_y(y_position: float) -> int:
 	return clampi(int(roundf(y_position * DRAW_ORDER_SCALE)), -4096, 4096)
+
+
+func _update_depth_lighting() -> void:
+	if _depth_light == null or player == null:
+		return
+	_depth_light.color = get_depth_light_color_at_x(player.global_position.x)
+
+
+func _depth_light_color_for_region(region_id: int) -> Color:
+	return DEPTH_LIGHT_COLORS.get(region_id, DEPTH_LIGHT_COLORS[1])
+
+
+func _detection_reason_label(reason: String) -> String:
+	if reason == "sight":
+		return "怪物视线"
+	if reason == "collision":
+		return "怪物"
+	return reason
+
+
+func _deepest_region_id() -> int:
+	var deepest_id := 1
+	for region in regions:
+		deepest_id = maxi(deepest_id, int(region["id"]))
+	return deepest_id
 
 
 func _leave_pause_mode() -> void:

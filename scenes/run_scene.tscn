@@ -28,6 +28,8 @@ offset = Vector2(4015.0142, 2328.0454)
 
 [node name="Fog" type="Node2D" parent="World" unique_id=1685908542]
 
+[node name="Effects" type="Node2D" parent="World"]
+
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=685040279]
 color = Color(0.033986602, 0.15454173, 0.29660228, 1)
 

@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://dbni0blye3o1w" path="res://scenes/ui/lobby.gd" id="1_5t5el"]
 [ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="2_2rbxb"]
 [ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_5t5el"]
-[ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="4_2rbxb"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="4_rqagm"]
 
 [node name="lobby" type="Control" unique_id=857127710]
@@ -95,7 +94,7 @@ offset_left = 24.0
 offset_top = 18.0
 offset_right = 480.0
 offset_bottom = 54.0
-theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 24
 text = "进度调试"
 
@@ -105,6 +104,7 @@ offset_left = 24.0
 offset_top = 66.0
 offset_right = 488.0
 offset_bottom = 134.0
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 20
 text = "进度"
 
@@ -114,7 +114,7 @@ offset_left = 24.0
 offset_top = 150.0
 offset_right = 244.0
 offset_bottom = 198.0
-theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 18
 text = "重置存档"
 
@@ -124,7 +124,7 @@ offset_left = 270.0
 offset_top = 150.0
 offset_right = 490.0
 offset_bottom = 198.0
-theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 18
 text = "+ 上传"
 
@@ -134,7 +134,7 @@ offset_left = 24.0
 offset_top = 218.0
 offset_right = 244.0
 offset_bottom = 266.0
-theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 18
 text = "解锁下一层"
 
@@ -144,6 +144,6 @@ offset_left = 270.0
 offset_top = 218.0
 offset_right = 490.0
 offset_bottom = 266.0
-theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 18
 text = "锁定起始层"

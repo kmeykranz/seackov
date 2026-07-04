@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bbmnyjqtbfgce" path="res://scripts/monster_patrol.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://kw8re0yxphii" path="res://assets/octupus.png" id="2_0delp"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_font"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 radius = 27.0
@@ -89,6 +90,8 @@ offset_left = -36.0
 offset_top = 30.0
 offset_right = 50.0
 offset_bottom = 53.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
 text = "巡逻"
 
 [node name="CatchArea" type="Area2D" parent="." unique_id=1898709766]

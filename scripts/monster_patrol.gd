@@ -20,6 +20,9 @@ var facing: Vector2 = Vector2.RIGHT
 var _active: bool = true
 var _patrol_index: int = 0
 var _lost_sight_timer: float = 0.0
+var _stun_timer: float = 0.0
+var _disarm_timer: float = 0.0
+var _knockback_timer: float = 0.0
 
 @onready var vision_cone: Polygon2D = $VisionCone
 @onready var body_pivot: Node2D = $BodyPivot
@@ -54,6 +57,47 @@ func set_active(is_active: bool) -> void:
 	set_physics_process(is_active)
 	if not is_active:
 		velocity = Vector2.ZERO
+
+
+func apply_stun(duration: float) -> void:
+	_stun_timer = maxf(_stun_timer, duration)
+	velocity = Vector2.ZERO
+
+
+func apply_disarm(duration: float) -> void:
+	_disarm_timer = maxf(_disarm_timer, duration)
+
+
+func apply_knockback(source_position: Vector2, impulse: float) -> void:
+	var direction := global_position - source_position
+	if direction == Vector2.ZERO:
+		direction = -facing
+	if direction == Vector2.ZERO:
+		direction = Vector2.RIGHT
+	velocity = direction.normalized() * impulse
+	_knockback_timer = 0.28
+
+
+func defeat() -> void:
+	set_active(false)
+	collision_layer = 0
+	collision_mask = 0
+	catch_area.collision_layer = 0
+	catch_area.collision_mask = 0
+	visible = false
+	queue_free()
+
+
+func can_attack_player() -> bool:
+	return _active and _stun_timer <= 0.0 and _disarm_timer <= 0.0
+
+
+func is_stunned() -> bool:
+	return _stun_timer > 0.0
+
+
+func is_disarmed() -> bool:
+	return _disarm_timer > 0.0
 
 
 func can_see_player(candidate: Node2D) -> bool:
@@ -93,9 +137,22 @@ func _physics_process(delta: float) -> void:
 	if not _active:
 		return
 
+	_update_effect_timers(delta)
+	if _stun_timer > 0.0:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		_update_visuals()
+		return
+	if _knockback_timer > 0.0:
+		_knockback_timer = maxf(0.0, _knockback_timer - delta)
+		velocity = velocity.move_toward(Vector2.ZERO, 900.0 * delta)
+		move_and_slide()
+		_update_visuals()
+		return
+
 	var sees_player := can_see_player(target)
 	if sees_player:
-		if state != State.CHASE:
+		if state != State.CHASE and can_attack_player():
 			player_detected.emit(self, "sight")
 		state = State.CHASE
 		_lost_sight_timer = lost_sight_grace
@@ -153,7 +210,12 @@ func _process_chase(delta: float, sees_player: bool) -> void:
 func _update_visuals() -> void:
 	body_pivot.rotation = 0.0
 	body_sprite.flip_h = facing.x > 0.0
-	body_pivot.modulate = Color(1.0, 0.48, 0.28, 1.0) if state == State.CHASE else Color.WHITE
+	if _stun_timer > 0.0:
+		body_pivot.modulate = Color(0.44, 0.82, 1.0, 1.0)
+	elif _disarm_timer > 0.0:
+		body_pivot.modulate = Color(0.64, 1.0, 0.46, 1.0)
+	else:
+		body_pivot.modulate = Color(1.0, 0.48, 0.28, 1.0) if state == State.CHASE else Color.WHITE
 
 	var half_width := tan(deg_to_rad(vision_angle_degrees * 0.5)) * vision_range
 	vision_cone.polygon = PackedVector2Array([
@@ -165,7 +227,12 @@ func _update_visuals() -> void:
 
 
 func _on_catch_area_body_entered(body: Node) -> void:
-	if body == target:
+	if body == target and can_attack_player():
 		state = State.CHASE
 		_lost_sight_timer = lost_sight_grace
 		player_detected.emit(self, "collision")
+
+
+func _update_effect_timers(delta: float) -> void:
+	_stun_timer = maxf(0.0, _stun_timer - delta)
+	_disarm_timer = maxf(0.0, _disarm_timer - delta)

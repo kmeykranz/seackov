@@ -4,6 +4,8 @@ signal extract_pressed
 
 @onready var status_label: Label = $StatusPanel/MarginContainer/StatusLabel
 @onready var message_label: Label = $MessagePanel/MarginContainer/MessageLabel
+@onready var tool_label: Label = $ToolPanel/MarginContainer/VBoxContainer/ToolLabel
+@onready var tool_hint_label: Label = $ToolPanel/MarginContainer/VBoxContainer/ToolHintLabel
 @onready var anchor_prompt: PanelContainer = $AnchorPrompt
 @onready var prompt_label: Label = $AnchorPrompt/MarginContainer/VBoxContainer/PromptLabel
 @onready var extract_button: Button = $AnchorPrompt/MarginContainer/VBoxContainer/ExtractButton
@@ -32,6 +34,11 @@ func update_status(state_text: String, carried_value: int, carried_counts: Dicti
 
 func show_message(text: String) -> void:
 	message_label.text = text
+
+
+func update_tool_status(title: String, hint: String) -> void:
+	tool_label.text = title
+	tool_hint_label.text = hint
 
 
 func show_anchor_prompt(carried_value: int) -> void:

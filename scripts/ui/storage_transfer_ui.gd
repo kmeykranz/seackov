@@ -8,7 +8,10 @@ const STORAGE_WAREHOUSE := "warehouse"
 const CURSOR_OFFSET := Vector2(14, 14)
 const PANEL_FULL_WIDTH := 880.0
 const PANEL_BACKPACK_WIDTH := 500.0
+const PANEL_HEIGHT := 660.0
 const PANEL_SIDE_MARGIN := 24.0
+const PANEL_TOP_MARGIN := 22.0
+const PANEL_BOTTOM_MARGIN := 24.0
 
 var _slots := {}
 var _cursor_stack := {"rarity": "", "count": 0}
@@ -37,6 +40,7 @@ func _ready() -> void:
 
 
 func open_panel(message: String = "") -> void:
+	_layout_panel()
 	_panel.visible = true
 	refresh()
 	if message != "":
@@ -218,14 +222,34 @@ func _apply_mode() -> void:
 	_status_label.text = _help_text()
 
 	var panel_width := PANEL_BACKPACK_WIDTH if _backpack_only else PANEL_FULL_WIDTH
-	_panel.offset_right = _panel.offset_left + panel_width
 	_margin_container.offset_right = panel_width - PANEL_SIDE_MARGIN
+	_layout_panel()
+
+
+func _layout_panel() -> void:
+	if _panel == null or _margin_container == null:
+		return
+
+	var panel_width := PANEL_BACKPACK_WIDTH if _backpack_only else PANEL_FULL_WIDTH
+	var viewport_size := Vector2(1920.0, 1080.0)
+	var viewport := get_viewport()
+	if viewport != null:
+		viewport_size = viewport.get_visible_rect().size
+
+	_panel.offset_left = floorf((viewport_size.x - panel_width) * 0.5)
+	_panel.offset_top = floorf((viewport_size.y - PANEL_HEIGHT) * 0.5)
+	_panel.offset_right = _panel.offset_left + panel_width
+	_panel.offset_bottom = _panel.offset_top + PANEL_HEIGHT
+	_margin_container.offset_left = PANEL_SIDE_MARGIN
+	_margin_container.offset_top = PANEL_TOP_MARGIN
+	_margin_container.offset_right = panel_width - PANEL_SIDE_MARGIN
+	_margin_container.offset_bottom = PANEL_HEIGHT - PANEL_BOTTOM_MARGIN
 
 
 func _help_text() -> String:
 	if _backpack_only:
 		return "局内背包：左键整组拿取/放下，右键拿一半或放一个。"
-	return "左键整组拿取/放下，右键拿一半或放一个，Shift+点击快速转移。"
+	return "左键整组拿取/放下，右键拿一半或放一个，按住换挡键点击快速转移。"
 
 
 func _can_access_storage(storage_id: String) -> bool:

@@ -29,6 +29,8 @@ var _world_boundary_rebound_distance: float = WORLD_BOUNDARY_REBOUND_DISTANCE
 var _dash_timer: float = 0.0
 var _dash_cooldown_timer: float = 0.0
 var _space_was_pressed: bool = false
+var _action_speed_multiplier: float = 1.0
+var _action_movement_locked: bool = false
 
 @onready var body_pivot: Node2D = $BodyPivot
 @onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
@@ -85,7 +87,7 @@ func get_soft_left_boundary_rebound_distance() -> float:
 
 
 func get_base_max_speed() -> float:
-	return speed
+	return speed * _action_speed_multiplier
 
 
 func get_dash_max_speed() -> float:
@@ -120,16 +122,46 @@ func trigger_dash(direction: Vector2 = Vector2.ZERO) -> bool:
 	return true
 
 
+func apply_item_impulse(direction: Vector2, impulse: float) -> void:
+	var impulse_direction := direction
+	if impulse_direction == Vector2.ZERO:
+		impulse_direction = facing
+	if impulse_direction == Vector2.ZERO:
+		impulse_direction = Vector2.RIGHT
+	velocity += impulse_direction.normalized() * impulse
+
+
+func set_action_speed_multiplier(multiplier: float) -> void:
+	_action_speed_multiplier = clampf(multiplier, 0.0, 1.0)
+
+
+func set_action_movement_locked(is_locked: bool) -> void:
+	_action_movement_locked = is_locked
+	if is_locked:
+		velocity = Vector2.ZERO
+
+
+func clear_action_movement_modifier() -> void:
+	_action_speed_multiplier = 1.0
+	_action_movement_locked = false
+
+
 func _physics_process(_delta: float) -> void:
 	if not control_enabled:
 		velocity = Vector2.ZERO
 		_dash_timer = 0.0
+		clear_action_movement_modifier()
 		_update_movement_visuals(Vector2.ZERO)
 		move_and_slide()
 		return
 
 	var input_vector := _movement_input()
 	_update_dash_timers(_delta)
+	if _action_movement_locked:
+		velocity = Vector2.ZERO
+		_update_movement_visuals(Vector2.ZERO)
+		move_and_slide()
+		return
 	_handle_dash_input(input_vector)
 	_update_velocity(input_vector, _delta)
 	if input_vector != Vector2.ZERO:

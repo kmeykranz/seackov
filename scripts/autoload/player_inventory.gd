@@ -309,7 +309,7 @@ func format_counts(counts: Dictionary) -> String:
 	for rarity in RARITY_ORDER:
 		var count := int(counts.get(rarity, 0))
 		if count > 0:
-			parts.append("%s x%d" % [get_rarity_label(rarity), count])
+			parts.append("%s ×%d" % [get_rarity_label(rarity), count])
 
 	return "无" if parts.is_empty() else "，".join(parts)
 
@@ -318,7 +318,7 @@ func format_stack(stack: Dictionary) -> String:
 	var sanitized := _sanitize_stack(stack)
 	if _is_empty_stack(sanitized):
 		return "空"
-	return "%s x%d" % [get_rarity_label(sanitized["rarity"]), sanitized["count"]]
+	return "%s ×%d" % [get_rarity_label(sanitized["rarity"]), sanitized["count"]]
 
 
 func get_summary_text() -> String:

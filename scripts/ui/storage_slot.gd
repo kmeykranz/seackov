@@ -2,7 +2,7 @@ extends Control
 
 signal slot_clicked(storage_id: String, slot_index: int, button_index: int, shift_pressed: bool)
 
-const CjkFont := preload("res://assets/SourceHanSerifCN-Heavy.otf")
+const CjkFont := preload("res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf")
 const SLOT_SIZE := Vector2(64, 64)
 
 var storage_id: String = ""
@@ -81,7 +81,7 @@ func _refresh() -> void:
 func _tooltip_text() -> String:
 	if _is_empty():
 		return "空格"
-	return "%s x%d" % [_rarity_label(stack["rarity"]), stack["count"]]
+	return "%s ×%d" % [_rarity_label(stack["rarity"]), stack["count"]]
 
 
 func _is_empty() -> bool:

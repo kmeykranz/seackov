@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/ui/storage_transfer_ui.gd" id="1_storage"]
-[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="2_font"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_font"]
 
 [node name="StorageTransferUi" type="CanvasLayer"]
 layer = 20
@@ -59,7 +59,7 @@ layout_mode = 2
 custom_minimum_size = Vector2(0, 54)
 theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
-text = "左键整组拿取/放下，右键拿一半或放一个，Shift+点击快速转移。"
+text = "左键整组拿取/放下，右键拿一半或放一个，按住换挡键点击快速转移。"
 autowrap_mode = 2
 
 [node name="StorageRows" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]

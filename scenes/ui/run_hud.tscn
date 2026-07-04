@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b01n2cctakfyw"]
 
 [ext_resource type="Script" uid="uid://levdvwdvt3cw" path="res://scripts/ui/run_hud.gd" id="1"]
+[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_font"]
 
 [node name="RunHud" type="CanvasLayer" unique_id=485112613]
 script = ExtResource("1")
@@ -20,6 +21,7 @@ theme_override_constants/margin_bottom = 10
 
 [node name="StatusLabel" type="Label" parent="StatusPanel/MarginContainer" unique_id=158735913]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 18
 text = "状态：搜索中"
 
@@ -38,14 +40,52 @@ theme_override_constants/margin_bottom = 10
 
 [node name="MessageLabel" type="Label" parent="MessagePanel/MarginContainer" unique_id=1371459635]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 text = "就绪"
 
+[node name="ToolPanel" type="PanelContainer" parent="." unique_id=873095331]
+offset_left = 16.0
+offset_top = 200.0
+offset_right = 560.0
+offset_bottom = 286.0
+
+[node name="MarginContainer" type="MarginContainer" parent="ToolPanel" unique_id=1062396242]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ToolPanel/MarginContainer" unique_id=1778131384]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ToolLabel" type="Label" parent="ToolPanel/MarginContainer/VBoxContainer" unique_id=1583664017]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 17
+text = "道具：未解锁"
+
+[node name="ToolHintLabel" type="Label" parent="ToolPanel/MarginContainer/VBoxContainer" unique_id=1911728826]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 15
+text = "探索并上传知识后解锁。"
+autowrap_mode = 3
+
 [node name="AnchorPrompt" type="PanelContainer" parent="." unique_id=12479146]
-offset_left = 430.0
-offset_top = 230.0
-offset_right = 850.0
-offset_bottom = 430.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -100.0
+offset_right = 210.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="AnchorPrompt" unique_id=142701272]
 layout_mode = 2
@@ -60,12 +100,14 @@ theme_override_constants/separation = 12
 
 [node name="TitleLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=822196754]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 24
 text = "已到达锚点"
 horizontal_alignment = 1
 
 [node name="PromptLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1362922077]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 16
 text = "按 F 返回船上结算，或继续搜索。"
 autowrap_mode = 3
@@ -73,19 +115,28 @@ autowrap_mode = 3
 [node name="ExtractButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1999385801]
 visible = false
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "返回船上并结算"
 
 [node name="ContinueButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=115323646]
 visible = false
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 text = "继续下潜"
 
 [node name="EndPanel" type="PanelContainer" parent="." unique_id=230608193]
 visible = false
-offset_left = 430.0
-offset_top = 240.0
-offset_right = 850.0
-offset_bottom = 390.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -75.0
+offset_right = 210.0
+offset_bottom = 75.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="MarginContainer" type="MarginContainer" parent="EndPanel" unique_id=1283670507]
 layout_mode = 2
@@ -96,6 +147,7 @@ theme_override_constants/margin_bottom = 18
 
 [node name="EndLabel" type="Label" parent="EndPanel/MarginContainer" unique_id=76636851]
 layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
 theme_override_font_sizes/font_size = 26
 text = "本轮已撤离"
 horizontal_alignment = 1
