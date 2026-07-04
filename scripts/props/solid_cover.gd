@@ -19,6 +19,7 @@ func configure(size: Vector2, kind: String, display_name: String) -> void:
 	visual.size = size
 	visual.position = -size * 0.5
 	visual.color = COLORS.get(kind, COLORS.reef)
+	visual.visible = kind != "wall"
 
 	label.text = display_name
 	label.position = Vector2(-size.x * 0.5 + 10.0, -10.0)

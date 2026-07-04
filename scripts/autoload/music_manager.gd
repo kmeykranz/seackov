@@ -3,6 +3,8 @@ extends Node
 ## 全局音乐管理器 —— autoload 单例，场景切换时不会被销毁，音乐无缝衔接。
 
 const LOBBY_MUSIC_PATH := "res://assets/sound/music/lobby.mp3"
+const BOAT_MUSIC_PATH := "res://assets/sound/music/boat.mp3"
+
 
 var _player: AudioStreamPlayer
 
@@ -16,9 +18,18 @@ func _ready() -> void:
 
 ## 播放 lobby 音乐（如果已在播放则不做任何事）
 func play_lobby_music() -> void:
-	if _player.stream != null and _player.playing:
+	var path := LOBBY_MUSIC_PATH
+	if _player.stream != null and _player.stream.resource_path == path and _player.playing:
 		return
-	_player.stream = load(LOBBY_MUSIC_PATH)
+	_player.stream = load(path)
+	_player.play()
+
+
+func play_boat_music() -> void:
+	var path := BOAT_MUSIC_PATH
+	if _player.stream != null and _player.stream.resource_path == path and _player.playing:
+		return
+	_player.stream = load(path)
 	_player.play()
 
 

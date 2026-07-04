@@ -1,7 +1,6 @@
 extends Node
 
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
-const SeaFloorScene := preload("res://scenes/props/sea_floor.tscn")
 const SolidCoverScene := preload("res://scenes/props/solid_cover.tscn")
 const SeaweedCoverScene := preload("res://scenes/props/seaweed_cover.tscn")
 const PlayerScene := preload("res://scenes/actors/player_diver.tscn")
@@ -35,11 +34,17 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 
 func _spawn_boundaries(parent: Node, world_rect: Rect2) -> void:
 	var thickness := 52.0
+	var left := world_rect.position.x
+	var top := world_rect.position.y
+	var right := world_rect.position.x + world_rect.size.x
+	var bottom := world_rect.position.y + world_rect.size.y
+	var cx := left + world_rect.size.x * 0.5
+	var cy := top + world_rect.size.y * 0.5
 	var specs := [
-		{"name": "North Wall", "position": Vector2(world_rect.size.x * 0.5, -thickness * 0.5), "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
-		{"name": "South Wall", "position": Vector2(world_rect.size.x * 0.5, world_rect.size.y + thickness * 0.5), "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
-		{"name": "West Wall", "position": Vector2(-thickness * 0.5, world_rect.size.y * 0.5), "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
-		{"name": "East Wall", "position": Vector2(world_rect.size.x + thickness * 0.5, world_rect.size.y * 0.5), "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
+		{"name": "North Wall", "position": Vector2(cx, top - thickness * 0.5),     "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
+		{"name": "South Wall", "position": Vector2(cx, bottom + thickness * 0.5),  "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
+		{"name": "West Wall",  "position": Vector2(left - thickness * 0.5, cy),    "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
+		{"name": "East Wall",  "position": Vector2(right + thickness * 0.5, cy),   "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
 	]
 	_spawn_solid_cover(parent, specs)
 

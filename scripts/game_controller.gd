@@ -4,6 +4,7 @@ class_name RunSceneController
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
+const BoatScenePath := "res://scenes/boat_scene.tscn"
 
 const PLAYER_LAYER: int = CollisionLayers.PLAYER
 const WALL_LAYER: int = CollisionLayers.WALL
@@ -82,6 +83,7 @@ func choose_extract() -> void:
 	if run_state != RunState.ANCHOR_PROMPT or not player_on_anchor:
 		return
 
+	_inventory().receive_extracted_counts(carried_counts)
 	for rarity in warehouse_counts.keys():
 		warehouse_counts[rarity] += carried_counts[rarity]
 		carried_counts[rarity] = 0
@@ -94,6 +96,7 @@ func choose_extract() -> void:
 	_hud.show_end(warehouse_value)
 	_hud.show_message("Run complete.")
 	_update_status()
+	get_tree().change_scene_to_file(BoatScenePath)
 
 
 func choose_continue() -> void:
@@ -242,3 +245,7 @@ func _update_status() -> void:
 		state_text = "Extracted"
 
 	_hud.update_status(state_text, carried_value, carried_counts, warehouse_value, treasures_remaining)
+
+
+func _inventory():
+	return get_node("/root/PlayerInventory")
