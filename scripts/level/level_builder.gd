@@ -3,11 +3,15 @@ extends Node
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const SolidCoverScene := preload("res://scenes/props/solid_cover.tscn")
 const SeaweedCoverScene := preload("res://scenes/props/seaweed_cover.tscn")
+const CoralCoverScene := preload("res://scenes/props/coral.tscn")
 const PlayerScene := preload("res://scenes/actors/player_diver.tscn")
 const MonsterScene := preload("res://scenes/actors/monster_patrol.tscn")
 const TreasureScene := preload("res://scenes/pickups/treasure_pickup.tscn")
 const AnchorScene := preload("res://scenes/props/anchor_exit.tscn")
 const ChestScenePath := "res://scenes/props/chest_box.tscn"
+const WALL_THICKNESS := 52.0
+const WALL_SEGMENT_LENGTH := 420.0
+const WALL_SEGMENT_GAP := 24.0
 
 var _rng := RandomNumberGenerator.new()
 
@@ -21,6 +25,7 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	_spawn_boundaries(containers["cover"], world_rect)
 	_spawn_solid_cover(containers["cover"], layout["solid_cover"])
 	_spawn_seaweed(containers["cover"], layout["seaweed"])
+	_spawn_coral(containers["cover"], layout["coral"])
 	var chests := _spawn_chests(containers["cover"], layout["chests"])
 
 	var player := _spawn_player(containers["actors"], spawn_anchor_spec["position"], world_rect)
@@ -47,20 +52,48 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 
 
 func _spawn_boundaries(parent: Node, world_rect: Rect2) -> void:
-	var thickness := 52.0
 	var left := world_rect.position.x
 	var top := world_rect.position.y
 	var right := world_rect.position.x + world_rect.size.x
 	var bottom := world_rect.position.y + world_rect.size.y
-	var cx := left + world_rect.size.x * 0.5
-	var cy := top + world_rect.size.y * 0.5
-	var specs := [
-		{"name": "North Wall", "position": Vector2(cx, top - thickness * 0.5),     "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
-		{"name": "South Wall", "position": Vector2(cx, bottom + thickness * 0.5),  "size": Vector2(world_rect.size.x, thickness), "kind": "wall"},
-		{"name": "West Wall",  "position": Vector2(left - thickness * 0.5, cy),    "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
-		{"name": "East Wall",  "position": Vector2(right + thickness * 0.5, cy),   "size": Vector2(thickness, world_rect.size.y), "kind": "wall"},
-	]
+	var specs := []
+	_append_horizontal_wall_segments(specs, "North Wall", left, right, top - WALL_THICKNESS * 0.5)
+	_append_horizontal_wall_segments(specs, "South Wall", left, right, bottom + WALL_THICKNESS * 0.5)
+	_append_vertical_wall_segments(specs, "West Wall", top, bottom, left - WALL_THICKNESS * 0.5)
+	_append_vertical_wall_segments(specs, "East Wall", top, bottom, right + WALL_THICKNESS * 0.5)
 	_spawn_solid_cover(parent, specs)
+
+
+func _append_horizontal_wall_segments(specs: Array, label: String, left: float, right: float, y_position: float) -> void:
+	var cursor := left
+	var index := 0
+	while cursor < right:
+		var length := minf(WALL_SEGMENT_LENGTH, right - cursor)
+		specs.append({
+			"name": "%s %02d" % [label, index],
+			"position": Vector2(cursor + length * 0.5, y_position),
+			"size": Vector2(length, WALL_THICKNESS),
+			"kind": "wall",
+			"boundary_segment": true,
+		})
+		cursor += WALL_SEGMENT_LENGTH + WALL_SEGMENT_GAP
+		index += 1
+
+
+func _append_vertical_wall_segments(specs: Array, label: String, top: float, bottom: float, x_position: float) -> void:
+	var cursor := top
+	var index := 0
+	while cursor < bottom:
+		var length := minf(WALL_SEGMENT_LENGTH, bottom - cursor)
+		specs.append({
+			"name": "%s %02d" % [label, index],
+			"position": Vector2(x_position, cursor + length * 0.5),
+			"size": Vector2(WALL_THICKNESS, length),
+			"kind": "wall",
+			"boundary_segment": true,
+		})
+		cursor += WALL_SEGMENT_LENGTH + WALL_SEGMENT_GAP
+		index += 1
 
 
 func _spawn_solid_cover(parent: Node, specs: Array) -> void:
@@ -69,6 +102,8 @@ func _spawn_solid_cover(parent: Node, specs: Array) -> void:
 		cover.name = _node_name(spec["name"])
 		cover.position = spec["position"]
 		cover.set_meta("region_id", int(spec.get("region_id", 1)))
+		cover.set_meta("boundary_segment", bool(spec.get("boundary_segment", false)))
+		cover.set_meta("cover_kind", spec.get("kind", "reef"))
 		cover.collision_layer = CollisionLayers.WALL
 		cover.collision_mask = CollisionLayers.PLAYER | CollisionLayers.MONSTER
 		parent.add_child(cover)
@@ -81,8 +116,22 @@ func _spawn_seaweed(parent: Node, specs: Array) -> void:
 		cover.name = _node_name(spec["name"])
 		cover.position = spec["position"]
 		cover.set_meta("region_id", int(spec.get("region_id", 1)))
+		cover.set_meta("cover_kind", "seaweed")
 		cover.collision_layer = CollisionLayers.COVER
 		cover.collision_mask = CollisionLayers.PLAYER
+		parent.add_child(cover)
+		cover.configure(spec["size"], spec["name"])
+
+
+func _spawn_coral(parent: Node, specs: Array) -> void:
+	for spec in specs:
+		var cover := CoralCoverScene.instantiate()
+		cover.name = _node_name(spec["name"])
+		cover.position = spec["position"]
+		cover.set_meta("region_id", int(spec.get("region_id", 1)))
+		cover.set_meta("cover_kind", "coral")
+		cover.collision_layer = CollisionLayers.WALL
+		cover.collision_mask = CollisionLayers.PLAYER | CollisionLayers.MONSTER
 		parent.add_child(cover)
 		cover.configure(spec["size"], spec["name"])
 
@@ -92,9 +141,10 @@ func _spawn_player(parent: Node, spawn_position: Vector2, world_rect: Rect2) -> 
 	player.name = "Player"
 	player.position = spawn_position
 	player.collision_layer = CollisionLayers.PLAYER
-	player.collision_mask = CollisionLayers.WALL | CollisionLayers.MONSTER
+	player.collision_mask = CollisionLayers.WALL
 	parent.add_child(player)
 	player.configure_camera(world_rect)
+	player.configure_soft_world_bounds(world_rect)
 	return player
 
 
@@ -156,7 +206,7 @@ func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
 		monster.set_meta("region_id", int(spec.get("region_id", 1)))
 		parent.add_child(monster)
 		monster.configure(spec["points"], player, CollisionLayers.WALL)
-		monster.configure_collision(CollisionLayers.MONSTER, CollisionLayers.WALL | CollisionLayers.PLAYER, CollisionLayers.PLAYER)
+		monster.configure_collision(CollisionLayers.MONSTER, CollisionLayers.WALL, CollisionLayers.PLAYER)
 		monsters.append(monster)
 	return monsters
 

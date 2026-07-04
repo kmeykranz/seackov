@@ -11,10 +11,12 @@ const ENTITY_SCENE_PATHS := [
 	"res://scenes/props/anchor_exit.tscn",
 	"res://scenes/props/solid_cover.tscn",
 	"res://scenes/props/seaweed_cover.tscn",
+	"res://scenes/props/coral.tscn",
 	"res://scenes/props/chest_box.tscn",
 	"res://scenes/ui/run_hud.tscn",
 	"res://scenes/ui/storage_transfer_ui.tscn",
 	"res://scenes/ui/minimap_ui.tscn",
+	"res://scenes/ui/pause_menu_ui.tscn",
 	"res://scenes/boat_scene.tscn",
 ]
 
@@ -38,6 +40,10 @@ func _run() -> void:
 	await _test_upload_progression_unlocks()
 	progress.reset_save()
 	inventory.reset_runtime_state()
+	_test_map_population_distribution()
+	await _test_monster_collision_death_returns_boat()
+	progress.reset_save()
+	inventory.reset_runtime_state()
 	var scene := load("res://scenes/run_scene.tscn")
 	_assert(scene != null, "run scene loads")
 	if scene == null:
@@ -51,6 +57,8 @@ func _run() -> void:
 
 	_test_initial_state()
 	_test_scene_split_and_visibility()
+	await _test_pause_menu_controls()
+	await _test_player_movement_and_perimeter()
 	await _test_region_progression()
 	await _test_collect_and_clear_penalty()
 	await _test_monster_vision_guards()
@@ -87,6 +95,53 @@ func _test_upload_progression_unlocks() -> void:
 	await process_frame
 
 
+func _test_map_population_distribution() -> void:
+	var layout := RunLayout.build(4)
+	_assert(RunLayout.get_anchor_count() == 7, "run layout authors exactly seven anchors")
+	_assert(layout["anchors"].size() == 7, "generated layout exposes exactly seven anchors")
+
+	for region_id in [1, 2, 3, 4]:
+		_assert(_count_specs_in_region(layout["seaweed"], region_id) > 0, "region %d has seaweed" % region_id)
+		_assert(_count_specs_in_region(layout["coral"], region_id) > 0, "region %d has coral" % region_id)
+		_assert(_count_specs_in_region(layout["treasures"], region_id) > 0, "region %d has treasures" % region_id)
+
+	_assert(_count_specs_in_region(layout["chests"], 4) > _count_specs_in_region(layout["chests"], 1), "leftmost region has more chests than rightmost region")
+	_assert(_count_specs_in_region(layout["monsters"], 4) > _count_specs_in_region(layout["monsters"], 1), "leftmost region has more monsters than rightmost region")
+	_assert(_count_treasure_rarity_in_region(layout["treasures"], 4, "legendary") > _count_treasure_rarity_in_region(layout["treasures"], 1, "legendary"), "leftmost region has more legendary treasure")
+	_assert(_treasure_value_weight_in_region(layout["treasures"], 4) > _treasure_value_weight_in_region(layout["treasures"], 1), "leftmost region has more valuable treasure mix")
+
+
+func _test_monster_collision_death_returns_boat() -> void:
+	var scene := load("res://scenes/run_scene.tscn")
+	_assert(scene != null, "run scene loads for monster collision death")
+	if scene == null:
+		return
+
+	var collision_run = scene.instantiate()
+	root.add_child(collision_run)
+	current_scene = collision_run
+	await process_frame
+	await physics_frame
+
+	inventory.add_to_storage("backpack", "common", 1)
+	collision_run.carried_counts["common"] = 1
+	collision_run.carried_value = 25
+	collision_run._on_monster_detected_player(collision_run.monsters[0], "collision")
+	_assert(collision_run.run_state == RunSceneControllerScript.RunState.CAUGHT, "monster collision changes the run to caught state")
+	await process_frame
+	await process_frame
+	await process_frame
+
+	var boat = current_scene
+	_assert(boat != null and boat.name == "BoatScene", "monster collision returns to boat scene")
+	_assert(inventory.get_backpack_total_count() == 0, "monster collision death empties the backpack")
+	if boat != null:
+		boat.queue_free()
+		if current_scene == boat:
+			current_scene = null
+	await process_frame
+
+
 func _test_initial_state() -> void:
 	_assert(game.run_state == RunSceneControllerScript.RunState.SEARCHING, "run starts in searching state")
 	_assert(game.player != null, "player exists")
@@ -101,6 +156,7 @@ func _test_initial_state() -> void:
 	_assert(game.anchor.get_meta("region_id", 1) <= game.get_unlocked_region_count(), "default extraction anchor is in an unlocked region")
 	_assert(is_equal_approx(game.get_soft_boundary_x(), RunLayout.soft_boundary_x_for_unlocked_count(1)), "initial soft boundary is at the first region gate")
 	_assert(game.get_locked_fog_count() > 0, "locked regions start covered by fog")
+	_assert(game.get_boundary_segment_count() >= 60, "outer perimeter is built from segmented wall pieces")
 
 
 func _test_scene_split_and_visibility() -> void:
@@ -108,13 +164,15 @@ func _test_scene_split_and_visibility() -> void:
 		_assert(load(path) != null, "entity scene loads: %s" % path)
 
 	_assert(game.has_node("World/Background"), "run background node exists")
-	_assert(game.has_node("World/Cover/NorthReef"), "solid cover scene is instanced")
-	_assert(game.has_node("World/Cover/WestGrass"), "seaweed scene is instanced")
+	_assert(game.get_cover_kind_count("reef") > 0, "solid reef cover scenes are instanced")
+	_assert(game.get_cover_kind_count("seaweed") > 0, "seaweed scenes are instanced")
+	_assert(game.get_cover_kind_count("coral") > 0, "coral scenes are instanced")
 	_assert(game.has_node("World/Exits/AnchorExit"), "anchor scene is instanced")
 	_assert(game.has_node("World/Fog"), "region fog container exists")
 	_assert(game.has_node("RunHud"), "HUD scene is instanced")
 	_assert(game.has_node("StorageTransferUi"), "run backpack UI is instanced")
 	_assert(game.has_node("MiniMapUi"), "run minimap UI is instanced")
+	_assert(game.has_node("PauseMenuUi"), "run pause menu UI is instanced")
 	_assert(game.player.has_node("BodyPivot"), "player placeholder art exists")
 	_assert(game.player.position.y >= 250.0, "player starts below the HUD area")
 
@@ -142,6 +200,71 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.get_minimap_visible_region_count() == 1, "fresh minimap shows only the first unlocked region")
 	game._unhandled_input(m_key)
 	_assert(not game.is_minimap_open(), "M closes run minimap UI")
+
+
+func _test_pause_menu_controls() -> void:
+	var esc_key := InputEventKey.new()
+	esc_key.keycode = KEY_ESCAPE
+	esc_key.pressed = true
+
+	_assert(not game.is_pause_menu_open(), "pause menu starts closed")
+	game._unhandled_input(esc_key)
+	_assert(game.is_pause_menu_open(), "Esc opens the pause menu")
+	_assert(paused, "opening pause menu pauses the scene tree")
+	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/ResumeButton"), "pause menu has a resume option")
+	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/SettingsButton"), "pause menu has a settings option")
+	_assert(game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/ExitMenuButton"), "pause menu has an exit-to-menu option")
+	game.show_pause_settings()
+	game.resume_from_pause()
+	_assert(not game.is_pause_menu_open(), "resume closes the pause menu")
+	_assert(not paused, "resume unpauses the scene tree")
+	_assert(not game.get_node("PauseMenuUi").has_node("Panel/MarginContainer/VBoxContainer/ReturnBoatButton"), "pause menu does not expose return-to-ship")
+
+
+func _test_player_movement_and_perimeter() -> void:
+	for monster in game.monsters:
+		monster.set_active(false)
+
+	game.player.global_position = Vector2(8500, 5300)
+	game.player.velocity = Vector2.ZERO
+	var movement_delta := 1.0 / 60.0
+	game.player._update_dash_timers(movement_delta)
+	game.player._update_velocity(Vector2.RIGHT, movement_delta)
+	var first_speed: float = game.player.velocity.length()
+	_assert(first_speed > 0.0, "accelerated movement starts moving on input")
+	_assert(first_speed < game.player.get_base_max_speed() * 0.35, "accelerated movement does not snap to max speed")
+
+	for index in range(34):
+		game.player._update_dash_timers(movement_delta)
+		game.player._update_velocity(Vector2.RIGHT, movement_delta)
+	var cruising_speed: float = game.player.velocity.length()
+	_assert(cruising_speed > first_speed + 120.0, "accelerated movement builds speed over time")
+	_assert(cruising_speed <= game.player.get_base_max_speed() + 35.0, "base movement stays under the slower max speed")
+
+	game.player.trigger_dash(Vector2.RIGHT)
+	game.player._update_velocity(Vector2.RIGHT, movement_delta)
+	_assert(game.player.is_dash_active(), "Space starts the dash state")
+	_assert(game.player.get_current_speed_cap() > game.player.get_base_max_speed(), "dash temporarily raises the speed cap")
+	_assert(game.player.velocity.length() > game.player.get_base_max_speed(), "dash impulse can push velocity above base speed")
+
+	for index in range(40):
+		game.player._update_dash_timers(movement_delta)
+		game.player._update_velocity(Vector2.RIGHT, movement_delta)
+	_assert(game.player.get_current_speed_cap() <= game.player.get_base_max_speed() + 1.0, "dash speed cap curves back to base speed")
+
+	var speed_before_release: float = game.player.velocity.length()
+	for index in range(12):
+		game.player._update_dash_timers(movement_delta)
+		game.player._update_velocity(Vector2.ZERO, movement_delta)
+	_assert(game.player.velocity.length() < speed_before_release, "movement decelerates after input release")
+
+	var rebound_distance: float = game.player.get_world_boundary_rebound_distance()
+	var near_right_edge := Vector2(game.world_rect.end.x - rebound_distance * 0.35, 3000.0)
+	game.player.global_position = near_right_edge
+	game.player.velocity = Vector2.ZERO
+	for index in range(50):
+		await physics_frame
+	_assert(game.player.global_position.x < near_right_edge.x, "outer soft perimeter pushes the player inward")
 
 
 func _test_region_progression() -> void:
@@ -431,6 +554,37 @@ func _test_lobby_debug_controls() -> void:
 
 	lobby.queue_free()
 	await process_frame
+
+
+func _count_specs_in_region(specs: Array, region_id: int) -> int:
+	var count := 0
+	for spec in specs:
+		if int(spec.get("region_id", 0)) == region_id:
+			count += 1
+	return count
+
+
+func _count_treasure_rarity_in_region(specs: Array, region_id: int, rarity: String) -> int:
+	var count := 0
+	for spec in specs:
+		if int(spec.get("region_id", 0)) == region_id and String(spec.get("rarity", "")) == rarity:
+			count += 1
+	return count
+
+
+func _treasure_value_weight_in_region(specs: Array, region_id: int) -> int:
+	var value := 0
+	for spec in specs:
+		if int(spec.get("region_id", 0)) != region_id:
+			continue
+		match String(spec.get("rarity", "")):
+			"common":
+				value += 1
+			"rare":
+				value += 3
+			"legendary":
+				value += 8
+	return value
 
 
 func _assert(condition: bool, label: String) -> void:

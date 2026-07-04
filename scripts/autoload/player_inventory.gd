@@ -142,6 +142,12 @@ func upload_all_from_backpack() -> Dictionary:
 	return _result(STORAGE_UPLOADED, moved)
 
 
+func clear_backpack() -> Dictionary:
+	var moved := _counts_from_slots(backpack_slots)
+	backpack_slots = _empty_slots(BACKPACK_SLOT_COUNT)
+	return _result(STORAGE_BACKPACK, moved)
+
+
 func quick_transfer_slot(source_storage: String, slot_index: int) -> Dictionary:
 	if not _is_transfer_storage(source_storage):
 		return _result("", _empty_counts())

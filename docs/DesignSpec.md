@@ -1,26 +1,27 @@
 # DesignSpec - Underwater Run And Boat Inventory
 
 ## Scene Composition
-The run scene is a `Node2D` controlled by `RunSceneController`. It contains named world containers, an instanced HUD scene, an instanced storage UI configured to show only the backpack, and a fog container for locked regions. `RunLevelBuilder` reads `RunLayout` region data and instances separate actor, pickup, prop, and UI scenes into those containers.
+The run scene is a `Node2D` controlled by `RunSceneController`. It contains named world containers, an instanced HUD scene, an instanced storage UI configured to show only the backpack, an instanced pause menu, and a fog container for locked regions. `RunLevelBuilder` reads `RunLayout` region data and instances separate actor, pickup, prop, and UI scenes into those containers.
 
 The boat scene is a `Node2D` controlled by `BoatScene`. It contains a player diver and five interaction areas: dive hatch, mission console, purifier device, upload device, and warehouse. Interactions use the same `F` key prompt pattern as chests and the hatch.
 
 The storage transfer UI is a separate scene instanced into the run scene and the boat. In the run scene it shows only the backpack grid; in the boat scene it shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, shows the held stack next to the mouse cursor, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection. The run scene also instances a floating minimap UI that opens with `M` and draws only unlocked region bounds, available anchors, and the player marker.
 
 ## Module Responsibilities
-- `RunSceneController`: run state, score/haul accounting, extraction choices, run backpack/minimap UI routing, region fog/soft-boundary refresh, and actor signal wiring.
+- `RunSceneController`: run state, score/haul accounting, extraction choices, run backpack/minimap/pause UI routing, region fog/soft-boundary refresh, collision death, and actor signal wiring.
 - `PlayerInventory`: runtime cross-scene backpack, warehouse, uploaded item records, research point accounting, and slot-level add/remove operations.
 - `ProgressState`: persistent region unlock count, uploaded legendary progress, save/load, and debug mutation APIs.
 - `BoatScene`: boat interaction prompts, boat status HUD, and calls into `PlayerInventory`.
 - `StorageTransferUi`: backpack-only or backpack/warehouse panel visibility, slot refresh, hand-held stack state, cursor-following held item preview, and click operation routing.
 - `StorageSlot`: one clickable storage grid cell with an item icon and stack count.
-- `RunLayout`: explicit map bounds, region bounds, anchor specs, cover specs, treasure specs, and monster patrol routes.
-- `RunLevelBuilder`: scene instantiation from layout data into run scene containers and random unlocked-anchor spawn selection.
-- `PlayerDiver`: keyboard movement, soft lock-boundary resistance, current facing direction, and whether the player is hidden.
+- `RunLayout`: explicit map bounds, region bounds, anchor specs, and deterministic full-map population specs for cover, coral, treasure, chests, and monster patrol routes.
+- `RunLevelBuilder`: scene instantiation from layout data into run scene containers, coral/seaweed/solid cover construction, segmented wall construction, and random unlocked-anchor spawn selection.
+- `PlayerDiver`: accelerated keyboard movement, dash boost, soft lock-boundary resistance, soft world-perimeter resistance, current facing direction, and whether the player is hidden.
 - `MonsterPatrol`: fixed waypoint patrol, chase recovery, front cone detection, and collision discovery.
 - `TreasurePickup`: rarity value and one-time collection.
 - `AnchorExit`: player overlap at extraction point.
 - `RunHud`: status, messages, anchor prompt, and run-end panel.
+- `PauseMenuUi`: visible pause controls for resume, settings placeholder, and exit to main menu.
 - Prop scenes: visible placeholder art plus collision or cover behavior.
 
 ## Run State Machine
@@ -28,15 +29,19 @@ States:
 - `SEARCHING`: Player can move, collect treasure, be detected, and enter the anchor.
 - `ANCHOR_PROMPT`: Player is standing in the anchor area and can choose extract or continue.
 - `EXTRACTED`: Carried treasure has been banked and the player is returned to the boat scene.
+- `CAUGHT`: Monster contact has emptied the backpack, disabled gameplay, and started the return to the boat.
 
 Events:
 - `press_b`: Opens or closes the backpack-only grid UI.
 - `press_m`: Opens or closes the floating minimap UI.
+- `press_esc`: Opens or closes the pause menu.
+- `press_space`: Applies a short dash impulse and temporarily raises the player speed cap.
 - `treasure_collected`: Adds pickup value to carried haul and adds the item to backpack slots immediately.
 - `chest_opened`: Picks one weighted random reward and adds it to carried haul and backpack slots immediately.
 - `uploaded_legendary_changed`: Unlocks additional regions at every two uploaded legendary items.
 - `progress_changed`: Refreshes locked-region fog and player soft boundary.
 - `player_detected`: Clears carried haul and removes current-run carried counts from backpack slots.
+- `monster_collision`: `SEARCHING -> CAUGHT`, empties backpack, disables gameplay, and transitions to the boat scene.
 - `anchor_entered`: `SEARCHING -> ANCHOR_PROMPT`.
 - `anchor_exited`: `ANCHOR_PROMPT -> SEARCHING`.
 - `continue_selected`: `ANCHOR_PROMPT -> SEARCHING`.
@@ -48,14 +53,21 @@ Guards:
 - Run storage UI does not expose warehouse slots or Shift-transfer to warehouse.
 - The selected spawn anchor is not available as an extraction anchor.
 - Anchors in locked regions are ignored.
+- Dash cannot restart while the dash cooldown is active.
+- Pause cannot return directly to the boat.
 
 Side Effects:
+- Movement accelerates toward a target velocity and decelerates toward zero instead of snapping immediately to maximum speed.
+- Dash speed cap curves back to the base cap over a short duration.
 - Treasure collection removes the pickup from the map.
 - Chest opening marks the chest opened and emits exactly one reward item.
-- Detection clears only current-run carried treasure from score and backpack.
+- Sight detection clears only current-run carried treasure from score and backpack.
+- Monster contact clears the whole backpack, zeroes carried haul, disables gameplay, and returns to the boat scene.
+- Pause sets `SceneTree.paused`, resume clears it, settings stays paused, and exit clears pause before switching to the main menu.
 - Extraction moves carried treasure into the run banked summary, keeps already-added backpack items without adding another copy, disables active gameplay, and returns to the boat scene.
 - Locked-region fog is rebuilt after progression changes.
 - The player is pushed rightward when crossing the active locked-region boundary, and also springs outward after releasing input inside the slowdown margin until roughly two body lengths outside the active boundary.
+- Segmented outer wall pieces are generated around the world perimeter, and the player receives inward soft-boundary force near those edges.
 - The minimap redraws after being opened or after progression changes.
 
 Failure and Rollback Paths:
@@ -99,6 +111,7 @@ Events:
 - `right_click_slot`: takes half a stack when hand is empty, otherwise places one item into a compatible slot.
 - `shift_click_slot`: quick-transfers the clicked stack to the other storage location.
 - `player_detected`: removes current-run carried counts from backpack.
+- `monster_collision`: clears all backpack slots before returning to the boat.
 - `upload_backpack`: all backpack items move to uploaded counts and add research points.
 
 Guards:
@@ -109,6 +122,7 @@ Guards:
 - Different item types never merge into one slot.
 - Upload is a no-op when the backpack is empty.
 - Detection before extraction removes only current-run carried backpack counts; warehouse and uploaded records are unchanged.
+- Monster contact clears backpack slots; warehouse and uploaded records are unchanged.
 
 Side Effects:
 - Boat status text refreshes after any interaction.
@@ -116,8 +130,11 @@ Side Effects:
 - Storage UI refreshes after any click operation.
 - Held-stack preview follows the mouse cursor while the hand is not empty.
 
+## Map Population
+`RunLayout` keeps exactly seven authored anchor specs. A run hides the selected spawn anchor and instances the remaining anchor exits, with locked-region anchors ignored until their region opens. The layout generator produces seaweed, coral, solid cover, treasure, chests, and monsters in every authored region. Region profiles increase chest count, monster count, and legendary treasure density as x values get smaller toward the left side of the map.
+
 ## Placeholder Art
-Placeholder art is intentionally high-contrast and scene-local: cyan diver, red patrol, translucent red vision cone, yellow/blue/magenta treasure, green seaweed, teal reef, brown wreckage, and panel-backed HUD.
+Placeholder art is intentionally high-contrast and scene-local: cyan diver, red patrol, translucent red vision cone, yellow/blue/magenta treasure, green seaweed, coral texture cover, teal reef, brown wreckage, and panel-backed HUD.
 
 ## Future Exploration Range
 The current map layout is centralized in `RunLayout` as world bounds, cover rectangles, treasure spawns, and patrol paths. Expanding exploration later should start by changing those layout inputs and adding a progression event that reveals or unlocks new regions.

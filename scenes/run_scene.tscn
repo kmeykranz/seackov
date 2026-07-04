@@ -1,10 +1,11 @@
-[gd_scene format=3 uid="uid://cuexwr8u6tnw4"]
+[gd_scene format=3 uid="uid://ctb4c1iy236en"]
 
 [ext_resource type="Script" uid="uid://dphhgoyiw1lu6" path="res://scripts/game_controller.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/run_hud.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://bli6s6tuqq18f" path="res://assets/map.png" id="2_nm65f"]
 [ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="3_storage"]
 [ext_resource type="PackedScene" path="res://scenes/ui/minimap_ui.tscn" id="4_minimap"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu_ui.tscn" id="5_pause"]
 
 [node name="RunScene" type="Node2D" unique_id=1691030222]
 script = ExtResource("1")
@@ -32,3 +33,5 @@ offset = Vector2(4015.0142, 2328.0454)
 [node name="StorageTransferUi" parent="." unique_id=1138025695 instance=ExtResource("3_storage")]
 
 [node name="MiniMapUi" parent="." unique_id=1572166710 instance=ExtResource("4_minimap")]
+
+[node name="PauseMenuUi" parent="." unique_id=205881964 instance=ExtResource("5_pause")]

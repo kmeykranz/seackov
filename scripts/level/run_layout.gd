@@ -22,79 +22,12 @@ const ANCHORS := [
 	{"id": "trench_core", "region_id": 4, "position": Vector2(880, 3120)},
 ]
 
-const CHESTS := [
-	{"region_id": 1, "position": Vector2(9000, 2540)},
-	{"region_id": 2, "position": Vector2(6060, 2580)},
-]
-
-const SOLID_COVER := [
-	{"name": "North Reef", "region_id": 1, "position": Vector2(8280, 1480), "size": Vector2(260, 110), "kind": "reef"},
-	{"name": "Wreck Bow", "region_id": 1, "position": Vector2(9090, 2140), "size": Vector2(360, 95), "kind": "wreck"},
-	{"name": "Reef Gate", "region_id": 1, "position": Vector2(10060, 3540), "size": Vector2(280, 130), "kind": "reef"},
-	{"name": "Broken Hull", "region_id": 1, "position": Vector2(9700, 4720), "size": Vector2(320, 110), "kind": "wreck"},
-	{"name": "Signal Debris", "region_id": 2, "position": Vector2(6940, 1850), "size": Vector2(380, 110), "kind": "wreck"},
-	{"name": "Lava Rock", "region_id": 2, "position": Vector2(6040, 4020), "size": Vector2(280, 140), "kind": "reef"},
-	{"name": "Deep Rock", "region_id": 3, "position": Vector2(3120, 3300), "size": Vector2(240, 120), "kind": "reef"},
-	{"name": "Tunnel Rubble", "region_id": 4, "position": Vector2(980, 3580), "size": Vector2(320, 130), "kind": "wreck"},
-]
-
-const SEAWEED := [
-	{"name": "West Grass", "region_id": 1, "position": Vector2(8360, 3360), "size": Vector2(210, 210)},
-	{"name": "Center Grass", "region_id": 1, "position": Vector2(9260, 3700), "size": Vector2(280, 180)},
-	{"name": "East Grass", "region_id": 1, "position": Vector2(10120, 2840), "size": Vector2(210, 240)},
-	{"name": "South Grass", "region_id": 1, "position": Vector2(8660, 4960), "size": Vector2(240, 160)},
-	{"name": "Wreck Kelp", "region_id": 2, "position": Vector2(6540, 3060), "size": Vector2(260, 220)},
-	{"name": "Abyss Kelp", "region_id": 3, "position": Vector2(2680, 2220), "size": Vector2(260, 220)},
-]
-
-const TREASURES := [
-	{"region_id": 1, "position": Vector2(8220, 1160), "rarity": "common"},
-	{"region_id": 1, "position": Vector2(8760, 1660), "rarity": "common"},
-	{"region_id": 1, "position": Vector2(9350, 1860), "rarity": "rare"},
-	{"region_id": 1, "position": Vector2(10040, 2360), "rarity": "common"},
-	{"region_id": 1, "position": Vector2(8680, 3060), "rarity": "rare"},
-	{"region_id": 1, "position": Vector2(9200, 3560), "rarity": "common"},
-	{"region_id": 1, "position": Vector2(9620, 4120), "rarity": "legendary"},
-	{"region_id": 1, "position": Vector2(10030, 4660), "rarity": "common"},
-	{"region_id": 1, "position": Vector2(8220, 4880), "rarity": "legendary"},
-	{"region_id": 2, "position": Vector2(7080, 1460), "rarity": "rare"},
-	{"region_id": 2, "position": Vector2(6200, 2520), "rarity": "common"},
-	{"region_id": 2, "position": Vector2(5480, 4180), "rarity": "rare"},
-	{"region_id": 3, "position": Vector2(3180, 1260), "rarity": "legendary"},
-]
-
-const MONSTERS := [
-	{
-		"region_id": 1,
-		"name": "Patrol Angler",
-		"points": [
-			Vector2(8360, 2140),
-			Vector2(9420, 2140),
-			Vector2(9420, 2980),
-			Vector2(8360, 2980),
-		],
-	},
-	{
-		"region_id": 1,
-		"name": "Anchor Guard",
-		"points": [
-			Vector2(9000, 4380),
-			Vector2(10040, 4380),
-			Vector2(10040, 5160),
-			Vector2(9000, 5160),
-		],
-	},
-	{
-		"region_id": 2,
-		"name": "Wreck Watcher",
-		"points": [
-			Vector2(5480, 2160),
-			Vector2(7060, 2160),
-			Vector2(7060, 3440),
-			Vector2(5480, 3440),
-		],
-	},
-]
+const REGION_POPULATION := {
+	1: {"seaweed": 7, "coral": 6, "chests": 1, "monsters": 2, "treasures": {"common": 9, "rare": 3, "legendary": 2}},
+	2: {"seaweed": 9, "coral": 8, "chests": 2, "monsters": 5, "treasures": {"common": 6, "rare": 8, "legendary": 4}},
+	3: {"seaweed": 11, "coral": 10, "chests": 3, "monsters": 10, "treasures": {"common": 4, "rare": 10, "legendary": 8}},
+	4: {"seaweed": 13, "coral": 12, "chests": 4, "monsters": 15, "treasures": {"common": 2, "rare": 10, "legendary": 14}},
+}
 
 
 static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT) -> Dictionary:
@@ -107,16 +40,21 @@ static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT) ->
 		"soft_boundary_margin": SOFT_BOUNDARY_MARGIN,
 		"locked_region_rects": locked_region_rects_for_unlocked_count(clamped_count),
 		"anchors": ANCHORS.duplicate(true),
-		"chests": CHESTS.duplicate(true),
-		"solid_cover": SOLID_COVER.duplicate(true),
-		"seaweed": SEAWEED.duplicate(true),
-		"treasures": TREASURES.duplicate(true),
-		"monsters": MONSTERS.duplicate(true),
+		"chests": _generate_chests(),
+		"solid_cover": _generate_solid_cover(),
+		"seaweed": _generate_seaweed(),
+		"coral": _generate_coral(),
+		"treasures": _generate_treasures(),
+		"monsters": _generate_monsters(),
 	}
 
 
 static func get_regions() -> Array:
 	return REGIONS.duplicate(true)
+
+
+static func get_anchor_count() -> int:
+	return ANCHORS.size()
 
 
 static func soft_boundary_x_for_unlocked_count(unlocked_region_count: int) -> float:
@@ -137,3 +75,132 @@ static func locked_region_rects_for_unlocked_count(unlocked_region_count: int) -
 			Vector2(float(region["x_max"]) - float(region["x_min"]), WORLD_RECT.size.y)
 		))
 	return rects
+
+
+static func _generate_solid_cover() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var count := 3 + region_id
+		for index in range(count):
+			var kind := "wreck" if (index + region_id) % 3 == 0 else "reef"
+			specs.append({
+				"name": "Region%d%s%02d" % [region_id, "Wreck" if kind == "wreck" else "Reef", index],
+				"region_id": region_id,
+				"position": _position_in_region(region, index, count, 0.11),
+				"size": Vector2(240.0 + float((index + region_id) % 4) * 42.0, 96.0 + float(index % 3) * 22.0),
+				"kind": kind,
+			})
+	return specs
+
+
+static func _generate_seaweed() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var count := int(REGION_POPULATION[region_id]["seaweed"])
+		for index in range(count):
+			specs.append({
+				"name": "Region%dSeaweed%02d" % [region_id, index],
+				"region_id": region_id,
+				"position": _position_in_region(region, index, count, 0.37),
+				"size": Vector2(190.0 + float(index % 4) * 32.0, 170.0 + float((index + 2) % 4) * 28.0),
+			})
+	return specs
+
+
+static func _generate_coral() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var count := int(REGION_POPULATION[region_id]["coral"])
+		for index in range(count):
+			specs.append({
+				"name": "Region%dCoral%02d" % [region_id, index],
+				"region_id": region_id,
+				"position": _position_in_region(region, index, count, 0.23),
+				"size": Vector2(150.0 + float(index % 5) * 24.0, 120.0 + float((index + 1) % 4) * 26.0),
+			})
+	return specs
+
+
+static func _generate_chests() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var count := int(REGION_POPULATION[region_id]["chests"])
+		for index in range(count):
+			specs.append({
+				"region_id": region_id,
+				"position": _position_in_region(region, index, count, 0.61),
+			})
+	return specs
+
+
+static func _generate_treasures() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var rarity_counts: Dictionary = REGION_POPULATION[region_id]["treasures"]
+		var rarity_list := _rarity_list(rarity_counts)
+		for index in range(rarity_list.size()):
+			specs.append({
+				"region_id": region_id,
+				"position": _position_in_region(region, index, rarity_list.size(), 0.49),
+				"rarity": rarity_list[index],
+			})
+	return specs
+
+
+static func _generate_monsters() -> Array:
+	var specs := []
+	for region in REGIONS:
+		var region_id := int(region["id"])
+		var count := int(REGION_POPULATION[region_id]["monsters"])
+		for index in range(count):
+			var center := _position_in_region(region, index, count, 0.73)
+			var width := 340.0 + float(region_id) * 60.0
+			var height := 250.0 + float((index + region_id) % 3) * 80.0
+			specs.append({
+				"region_id": region_id,
+				"name": "Region%dPatrol%02d" % [region_id, index],
+				"points": _patrol_loop(center, width, height, region),
+			})
+	return specs
+
+
+static func _rarity_list(rarity_counts: Dictionary) -> Array:
+	var result := []
+	for rarity in ["common", "rare", "legendary"]:
+		for index in range(int(rarity_counts.get(rarity, 0))):
+			result.append(rarity)
+	return result
+
+
+static func _position_in_region(region: Dictionary, index: int, count: int, offset: float) -> Vector2:
+	var usable_left := float(region["x_min"]) + 220.0
+	var usable_right := float(region["x_max"]) - 220.0
+	var usable_top := WORLD_RECT.position.y + 520.0
+	var usable_bottom := WORLD_RECT.end.y - 520.0
+	var spread_count := maxf(1.0, float(count))
+	var x_seed := fmod((float(index) * 0.61803398875) + offset, 1.0)
+	var y_seed := fmod((float(index % 7) / 7.0) + offset * 0.73 + float(index / 7) * 0.19, 1.0)
+	if count == 1:
+		x_seed = 0.5
+	var x := lerpf(usable_left, usable_right, clampf((x_seed * spread_count + 0.5) / (spread_count + 1.0) + x_seed * 0.12, 0.08, 0.92))
+	var y := lerpf(usable_top, usable_bottom, clampf(y_seed, 0.08, 0.92))
+	return Vector2(x, y)
+
+
+static func _patrol_loop(center: Vector2, width: float, height: float, region: Dictionary) -> Array:
+	var min_x := float(region["x_min"]) + 180.0
+	var max_x := float(region["x_max"]) - 180.0
+	var min_y := WORLD_RECT.position.y + 420.0
+	var max_y := WORLD_RECT.end.y - 420.0
+	var half_size := Vector2(width, height) * 0.5
+	return [
+		Vector2(clampf(center.x - half_size.x, min_x, max_x), clampf(center.y - half_size.y, min_y, max_y)),
+		Vector2(clampf(center.x + half_size.x, min_x, max_x), clampf(center.y - half_size.y, min_y, max_y)),
+		Vector2(clampf(center.x + half_size.x, min_x, max_x), clampf(center.y + half_size.y, min_y, max_y)),
+		Vector2(clampf(center.x - half_size.x, min_x, max_x), clampf(center.y + half_size.y, min_y, max_y)),
+	]

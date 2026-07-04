@@ -5,6 +5,7 @@ const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
+const LobbyScenePath := "res://scenes/ui/lobby.tscn"
 const STORAGE_BACKPACK := "backpack"
 
 const PLAYER_LAYER: int = CollisionLayers.PLAYER
@@ -15,7 +16,7 @@ const EXIT_LAYER: int = CollisionLayers.EXIT
 const COVER_LAYER: int = CollisionLayers.COVER
 const DRAW_ORDER_SCALE := 0.5
 
-enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED}
+enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED, CAUGHT}
 
 var run_state: RunState = RunState.SEARCHING
 var world_rect: Rect2
@@ -61,9 +62,11 @@ var warehouse_counts := {
 @onready var _hud: CanvasLayer = $RunHud
 @onready var _storage_ui: CanvasLayer = $StorageTransferUi
 @onready var _minimap_ui: CanvasLayer = $MiniMapUi
+@onready var _pause_menu: CanvasLayer = $PauseMenuUi
 
 
 func _ready() -> void:
+	process_mode = Node.PROCESS_MODE_ALWAYS
 	set_process_unhandled_input(true)
 	world = $World
 	treasures_container = _pickup_container
@@ -81,9 +84,21 @@ func _ready() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if run_state == RunState.EXTRACTED:
-		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+
+	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
+		return
+
+	if event.keycode == KEY_ESCAPE:
+		_handle_key_input()
+		if is_pause_menu_open():
+			resume_from_pause()
+		else:
+			open_pause_menu()
+		return
+
+	if get_tree().paused:
 		return
 
 	if event.keycode == KEY_B:
@@ -97,7 +112,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if anchor == null or player == null or run_state == RunState.EXTRACTED:
+	if get_tree().paused:
+		return
+	if anchor == null or player == null or run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
 
 	var overlapping_anchor := _find_overlapping_anchor()
@@ -128,6 +145,7 @@ func choose_extract() -> void:
 	_hud.show_end(warehouse_value)
 	_hud.show_message("Run complete.")
 	_update_status()
+	_leave_pause_mode()
 	get_tree().change_scene_to_file(BoatScenePath)
 
 
@@ -142,7 +160,7 @@ func choose_continue() -> void:
 
 
 func handle_player_discovered(reason: String) -> void:
-	if run_state == RunState.EXTRACTED:
+	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
 
 	var lost_value := carried_value
@@ -160,6 +178,27 @@ func handle_player_discovered(reason: String) -> void:
 	_update_status()
 
 
+func handle_player_caught(reason: String) -> void:
+	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
+		return
+
+	_return_backpack_cursor_stack()
+	_inventory().clear_backpack()
+	for rarity in carried_counts.keys():
+		carried_counts[rarity] = 0
+	carried_value = 0
+	run_state = RunState.CAUGHT
+	player_on_anchor = false
+	active_anchor = null
+	_set_gameplay_enabled(false)
+	_hud.hide_anchor_prompt()
+	_hud.show_message("Caught by %s. Backpack emptied. Returning to ship." % reason)
+	_update_status()
+	_refresh_backpack_ui()
+	_leave_pause_mode()
+	get_tree().change_scene_to_file(BoatScenePath)
+
+
 func is_anchor_prompt_visible() -> bool:
 	return _hud.is_anchor_prompt_visible()
 
@@ -170,6 +209,10 @@ func is_backpack_ui_open() -> bool:
 
 func is_minimap_open() -> bool:
 	return _minimap_ui.is_open()
+
+
+func is_pause_menu_open() -> bool:
+	return _pause_menu != null and _pause_menu.is_open()
 
 
 func get_minimap_visible_region_count() -> int:
@@ -186,6 +229,22 @@ func get_locked_fog_count() -> int:
 
 func get_soft_boundary_x() -> float:
 	return soft_boundary_x
+
+
+func get_boundary_segment_count() -> int:
+	var count := 0
+	for item in _cover_container.get_children():
+		if bool(item.get_meta("boundary_segment", false)):
+			count += 1
+	return count
+
+
+func get_cover_kind_count(kind: String) -> int:
+	var count := 0
+	for item in _cover_container.get_children():
+		if String(item.get_meta("cover_kind", "")) == kind:
+			count += 1
+	return count
 
 
 func _build_level() -> void:
@@ -231,6 +290,9 @@ func _containers() -> Dictionary:
 func _wire_ui() -> void:
 	_hud.extract_pressed.connect(choose_extract)
 	_hud.continue_pressed.connect(choose_continue)
+	_pause_menu.resume_pressed.connect(resume_from_pause)
+	_pause_menu.settings_pressed.connect(show_pause_settings)
+	_pause_menu.exit_to_menu_pressed.connect(exit_to_main_menu)
 	_storage_ui.set_backpack_only(true)
 	_storage_ui.storage_changed.connect(_on_storage_changed)
 	_refresh_minimap_ui()
@@ -260,7 +322,10 @@ func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
 
 
 func _on_monster_detected_player(_monster: Node, reason: String) -> void:
-	handle_player_discovered(reason)
+	if reason == "collision":
+		handle_player_caught(reason)
+	else:
+		handle_player_discovered(reason)
 
 
 func _on_anchor_player_entered(new_active_anchor: Node) -> void:
@@ -284,9 +349,30 @@ func _on_anchor_player_exited() -> void:
 
 
 func _set_gameplay_enabled(enabled: bool) -> void:
-	player.control_enabled = enabled
+	if player != null:
+		player.control_enabled = enabled
 	for monster in monsters:
 		monster.set_active(enabled)
+
+
+func open_pause_menu() -> void:
+	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
+		return
+	get_tree().paused = true
+	_pause_menu.open_panel()
+
+
+func resume_from_pause() -> void:
+	_leave_pause_mode()
+
+
+func show_pause_settings() -> void:
+	_pause_menu.show_settings_message()
+
+
+func exit_to_main_menu() -> void:
+	_leave_pause_mode()
+	get_tree().change_scene_to_file(LobbyScenePath)
 
 
 func toggle_backpack_ui() -> void:
@@ -423,6 +509,8 @@ func _update_status() -> void:
 		state_text = "At anchor"
 	elif run_state == RunState.EXTRACTED:
 		state_text = "Extracted"
+	elif run_state == RunState.CAUGHT:
+		state_text = "Caught"
 
 	_hud.update_status(state_text, carried_value, carried_counts, warehouse_value, treasures_remaining)
 
@@ -450,6 +538,13 @@ func _update_draw_order() -> void:
 
 func _draw_order_for_y(y_position: float) -> int:
 	return clampi(int(roundf(y_position * DRAW_ORDER_SCALE)), -4096, 4096)
+
+
+func _leave_pause_mode() -> void:
+	get_tree().paused = false
+	if _pause_menu != null:
+		_pause_menu.close_panel()
+
 
 func _music_manager():
 	return get_node_or_null("/root/MusicManager")
