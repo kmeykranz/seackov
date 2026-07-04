@@ -78,6 +78,8 @@ func _physics_process(_delta: float) -> void:
 	elif not overlaps_anchor and player_on_anchor:
 		_on_anchor_player_exited()
 
+	_update_draw_order()
+
 
 func choose_extract() -> void:
 	if run_state != RunState.ANCHOR_PROMPT or not player_on_anchor:
@@ -249,3 +251,20 @@ func _update_status() -> void:
 
 func _inventory():
 	return get_node("/root/PlayerInventory")
+
+
+func _update_draw_order() -> void:
+	# Use vertical position to determine draw order: larger y => draw on top
+	if player == null:
+		return
+	# Set player z_index based on its y
+	if player is CanvasItem:
+		player.z_index = int(player.position.y)
+	# Update cover items (seaweed, coral, solid_cover)
+	for item in _cover_container.get_children():
+		if item is CanvasItem:
+			item.z_index = int(item.position.y)
+	# Update pickups so treasures/chests interact visually too
+	for item in _pickup_container.get_children():
+		if item is CanvasItem:
+			item.z_index = int(item.position.y)
