@@ -193,6 +193,9 @@ animations = [{
 "speed": 5.0
 }]
 
+[sub_resource type="CircleShape2D" id="CircleShape2D_1l68p"]
+radius = 26.476404
+
 [node name="PlayerDiver" type="CharacterBody2D" unique_id=1421304574]
 script = ExtResource("1")
 
@@ -213,3 +216,6 @@ animation = &"up"
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1466824116]
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="." unique_id=1419412083]
+shape = SubResource("CircleShape2D_1l68p")

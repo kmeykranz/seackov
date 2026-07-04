@@ -14,7 +14,10 @@ const COVER_LAYER: int = CollisionLayers.COVER
 
 enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED}
 
+enum MapStage {WALL1 = 1, WALL2 = 2, WALL3 = 3, CLEAR = 4}
+
 var run_state: RunState = RunState.SEARCHING
+var map_stage: MapStage = MapStage.WALL1
 var world_rect: Rect2
 
 var player: Node
@@ -45,11 +48,15 @@ var warehouse_counts := {
 @onready var _pickup_container: Node2D = $World/Pickups
 @onready var _exit_container: Node2D = $World/Exits
 @onready var _actor_container: Node2D = $World/Actors
+@onready var _wall1: StaticBody2D = $World/wall1
+@onready var _wall2: StaticBody2D = $World/wall2
+@onready var _wall3: StaticBody2D = $World/wall3
 @onready var _hud: CanvasLayer = $RunHud
 
 
 func _ready() -> void:
 	world = $World
+	_apply_map_stage(MapStage.CLEAR)
 	treasures_container = _pickup_container
 	monsters_container = _actor_container
 	_build_level()
@@ -117,6 +124,15 @@ func handle_player_discovered(reason: String) -> void:
 
 func is_anchor_prompt_visible() -> bool:
 	return _hud.is_anchor_prompt_visible()
+
+
+func set_map_stage(stage: int) -> void:
+	map_stage = clamp(stage, MapStage.WALL1, MapStage.CLEAR)
+	_apply_map_stage(map_stage)
+
+
+func advance_map_stage() -> void:
+	set_map_stage(map_stage + 1)
 
 
 func _build_level() -> void:
@@ -197,6 +213,19 @@ func _on_anchor_player_exited() -> void:
 		_hud.hide_anchor_prompt()
 		_hud.show_message("Left anchor range.")
 		_update_status()
+
+
+func _apply_map_stage(stage: int) -> void:
+	_set_wall_state(_wall1, stage == MapStage.WALL1)
+	_set_wall_state(_wall2, stage == MapStage.WALL2)
+	_set_wall_state(_wall3, stage == MapStage.WALL3)
+
+
+func _set_wall_state(wall: StaticBody2D, enabled: bool) -> void:
+	if wall == null:
+		return
+	wall.collision_layer = WALL_LAYER if enabled else 0
+	wall.visible = enabled
 
 
 func _set_gameplay_enabled(enabled: bool) -> void:
