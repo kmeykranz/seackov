@@ -26,7 +26,27 @@ var _time_until_next_shake: float = 0.0
 func _ready() -> void:
 	_base_position = _title_sprite.position
 	# 初次震动在 6~14 秒后随机触发
-	_time_until_next_shake = randf_range(6.0, 14.0)
+	_time_until_next_shake = randf_range(3.0, 8.0)
+
+	# —— 背景音乐（autoload 单例，场景切换不中断） ——
+	MusicManager.play_lobby_music()
+
+	# —— 按钮信号连接 ——
+	$start.pressed.connect(_on_start_pressed)
+	$about.pressed.connect(_on_about_pressed)
+	$quit.pressed.connect(_on_quit_pressed)
+
+
+func _on_start_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/run_scene.tscn")
+
+
+func _on_about_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/about.tscn")
+
+
+func _on_quit_pressed() -> void:
+	get_tree().quit()
 
 
 func _process(delta: float) -> void:
@@ -49,7 +69,7 @@ func _process(delta: float) -> void:
 		_shake_time += delta
 		if _shake_time >= _shake_duration:
 			_is_shaking = false
-			_time_until_next_shake = randf_range(5.0, 16.0)
+			_time_until_next_shake = randf_range(4.0, 10.0)
 		else:
 			var t := _shake_time / _shake_duration  # 0→1 归一化时间
 

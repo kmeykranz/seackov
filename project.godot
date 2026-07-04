@@ -11,12 +11,13 @@ config_version=5
 [application]
 
 config/name="seackov"
-run/main_scene="res://scenes/run_scene.tscn"
+run/main_scene="uid://crnwvcp85k63c"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
 [autoload]
 
+MusicManager="*res://scripts/autoload/music_manager.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]

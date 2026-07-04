@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://crnwvcp85k63c"]
 
 [ext_resource type="Script" uid="uid://dbni0blye3o1w" path="res://scenes/ui/lobby.gd" id="1_5t5el"]
-[ext_resource type="Texture2D" uid="uid://c7f3wb55tkifk" path="res://assets/ui-init.png" id="1_efll3"]
+[ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="2_2rbxb"]
 [ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_5t5el"]
 [ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="4_2rbxb"]
 
@@ -16,40 +16,44 @@ script = ExtResource("1_5t5el")
 
 [node name="background" type="Sprite2D" parent="." unique_id=1798412965]
 modulate = Color(1, 1, 1, 0.85490197)
-position = Vector2(642, 357.5)
-scale = Vector2(1.31893, 1.0610119)
-texture = ExtResource("1_efll3")
+position = Vector2(960, 540.00006)
+scale = Vector2(1.237911, 1.0009267)
+texture = ExtResource("2_2rbxb")
 
 [node name="Title" type="Sprite2D" parent="." unique_id=1230714027]
-position = Vector2(643, 230)
+position = Vector2(960, 321)
+scale = Vector2(1.325, 1.325)
 texture = ExtResource("2_5t5el")
 
 [node name="start" type="Button" parent="." unique_id=1335842173]
 layout_mode = 0
-offset_left = 488.0
-offset_top = 365.0
-offset_right = 791.0
-offset_bottom = 409.0
+offset_left = 747.0
+offset_top = 565.99994
+offset_right = 1050.0
+offset_bottom = 613.99994
+scale = Vector2(1.42, 1.42)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 34
 text = "Dive In"
 
 [node name="about" type="Button" parent="." unique_id=1090443531]
 layout_mode = 0
-offset_left = 529.0
-offset_top = 464.0
-offset_right = 751.0
-offset_bottom = 515.0
+offset_left = 803.0
+offset_top = 694.0
+offset_right = 1025.0
+offset_bottom = 745.0
+scale = Vector2(1.42, 1.42)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 30
 text = "About"
 
 [node name="quit" type="Button" parent="." unique_id=1818672971]
 layout_mode = 0
-offset_left = 577.0
-offset_top = 561.0
-offset_right = 699.0
-offset_bottom = 605.0
+offset_left = 873.99994
+offset_top = 819.99994
+offset_right = 995.99994
+offset_bottom = 863.99994
+scale = Vector2(1.425, 1.425)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 30
 text = "quit"

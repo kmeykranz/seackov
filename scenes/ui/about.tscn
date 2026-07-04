@@ -1,7 +1,10 @@
 [gd_scene format=3 uid="uid://b3tlvqvcfbgbm"]
 
-[ext_resource type="Texture2D" uid="uid://c7f3wb55tkifk" path="res://assets/ui-init.png" id="1_e66il"]
+[ext_resource type="Script" uid="uid://dgjbol7xqwf6n" path="res://scenes/ui/about.gd" id="1_w0w83"]
 [ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_m186m"]
+[ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="2_w0w83"]
+[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="3_m186m"]
+[ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="4_exo2l"]
 
 [node name="About" type="Control" unique_id=2034737801]
 layout_mode = 3
@@ -10,14 +13,72 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_w0w83")
 
 [node name="background" type="Sprite2D" parent="." unique_id=782264683]
-modulate = Color(1, 1, 1, 0.85490197)
-position = Vector2(642, 357.5)
-scale = Vector2(1.31893, 1.0610119)
-texture = ExtResource("1_e66il")
+modulate = Color(1, 1, 1, 0.5254902)
+position = Vector2(960.00006, 540)
+scale = Vector2(1.2379111, 1.0009267)
+texture = ExtResource("2_w0w83")
 
 [node name="Title" type="Sprite2D" parent="." unique_id=123046073]
-position = Vector2(643, 96.725)
-scale = Vector2(0.645, 0.645)
+position = Vector2(960.00006, 122.00001)
+scale = Vector2(0.845, 0.845)
 texture = ExtResource("2_m186m")
+
+[node name="Label" type="Label" parent="." unique_id=1824734942]
+layout_mode = 0
+offset_left = 279.0
+offset_top = 225.0
+offset_right = 1631.0
+offset_bottom = 298.0
+theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_font_sizes/font_size = 50
+text = "制作人员"
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="." unique_id=942492388]
+layout_mode = 0
+offset_left = 740.0
+offset_top = 333.0
+offset_right = 972.0
+offset_bottom = 778.0
+theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_font_sizes/font_size = 32
+text = "策划
+程序
+
+
+美术
+音效
+
+支持"
+horizontal_alignment = 1
+
+[node name="Label3" type="Label" parent="." unique_id=2125420989]
+layout_mode = 0
+offset_left = 956.0
+offset_top = 333.0
+offset_right = 1407.0
+offset_bottom = 834.0
+theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_font_sizes/font_size = 32
+text = "APWBD
+Fiveth
+MamboJiang
+小李子
+椰树果子
+APWBD
+小李子
+CodeX, Qwen, DeepSeek
+Copilot Auto"
+
+[node name="back" type="Button" parent="." unique_id=1062571521]
+layout_mode = 0
+offset_left = 848.0
+offset_top = 894.0
+offset_right = 1071.0
+offset_bottom = 956.0
+theme_override_fonts/font = ExtResource("4_exo2l")
+theme_override_font_sizes/font_size = 46
+text = "BACK"
