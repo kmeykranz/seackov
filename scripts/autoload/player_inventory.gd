@@ -96,6 +96,42 @@ func add_stack_to_storage(storage_id: String, stack: Dictionary) -> Dictionary:
 	return add_to_storage(storage_id, sanitized["rarity"], sanitized["count"])
 
 
+func remove_from_storage(storage_id: String, rarity: String, amount: int) -> Dictionary:
+	var moved := _empty_counts()
+	if not _is_transfer_storage(storage_id) or not RARITY_ORDER.has(rarity) or amount <= 0:
+		return _result_with_remainder(storage_id, moved, maxi(0, amount))
+
+	var slots := _slots_for_storage(storage_id)
+	var remaining := amount
+	for index in range(slots.size()):
+		if remaining <= 0:
+			break
+
+		var slot := _sanitize_stack(slots[index])
+		if String(slot.get("rarity", "")) != rarity:
+			continue
+
+		var removed := mini(int(slot["count"]), remaining)
+		slot["count"] = int(slot["count"]) - removed
+		slots[index] = _empty_stack() if int(slot["count"]) <= 0 else slot
+		remaining -= removed
+		moved[rarity] += removed
+
+	return _result_with_remainder(storage_id, moved, remaining)
+
+
+func remove_counts_from_storage(storage_id: String, counts: Dictionary) -> Dictionary:
+	var sanitized := _sanitize_counts(counts)
+	var moved := _empty_counts()
+	var remainder := 0
+	for rarity in RARITY_ORDER:
+		var result: Dictionary = remove_from_storage(storage_id, rarity, sanitized[rarity])
+		moved[rarity] = int(result["counts"][rarity])
+		remainder += int(result["remainder"])
+
+	return _result_with_remainder(storage_id, moved, remainder)
+
+
 func upload_all_from_backpack() -> Dictionary:
 	var moved := _counts_from_slots(backpack_slots)
 	for rarity in RARITY_ORDER:
@@ -175,6 +211,7 @@ func place_stack_in_slot(storage_id: String, slot_index: int, incoming_stack: Di
 		incoming["count"] = int(incoming["count"]) - placed
 		return _empty_stack() if int(incoming["count"]) <= 0 else incoming
 
+	# Different item types cannot merge into one grid cell; left-click swaps stacks.
 	slots[slot_index] = incoming
 	return slot
 

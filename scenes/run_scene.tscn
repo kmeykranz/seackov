@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://dphhgoyiw1lu6" path="res://scripts/game_controller.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/ui/run_hud.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://bli6s6tuqq18f" path="res://assets/map.png" id="2_nm65f"]
+[ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="3_storage"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_xmxk4"]
 size = Vector2(28.457539, 555.66724)
@@ -54,3 +55,5 @@ scale = Vector2(14.96, 14.96)
 shape = SubResource("RectangleShape2D_0w2ic")
 
 [node name="RunHud" parent="." unique_id=1333828393 instance=ExtResource("2")]
+
+[node name="StorageTransferUi" parent="." instance=ExtResource("3_storage")]

@@ -5,6 +5,7 @@ const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
+const STORAGE_BACKPACK := "backpack"
 
 const PLAYER_LAYER: int = CollisionLayers.PLAYER
 const WALL_LAYER: int = CollisionLayers.WALL
@@ -53,9 +54,11 @@ var warehouse_counts := {
 @onready var _wall2: StaticBody2D = $World/wall2
 @onready var _wall3: StaticBody2D = $World/wall3
 @onready var _hud: CanvasLayer = $RunHud
+@onready var _storage_ui: CanvasLayer = $StorageTransferUi
 
 
 func _ready() -> void:
+	set_process_unhandled_input(true)
 	world = $World
 	_apply_map_stage(MapStage.CLEAR)
 	treasures_container = _pickup_container
@@ -64,10 +67,23 @@ func _ready() -> void:
 	_wire_ui()
 	_update_status()
 
-	MusicManager.play_underwater()
-	MusicManager.diving_from_boat = false
+	var music_manager = _music_manager()
+	if music_manager != null:
+		music_manager.play_underwater()
+		music_manager.diving_from_boat = false
 
 	_hud.show_message("Collect treasure, hide in seaweed, use cover, extract at the anchor.")
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if run_state == RunState.EXTRACTED:
+		return
+	if not (event is InputEventKey) or not event.pressed or event.echo:
+		return
+
+	if event.keycode == KEY_B:
+		_handle_key_input()
+		toggle_backpack_ui()
 
 
 func _physics_process(_delta: float) -> void:
@@ -86,8 +102,10 @@ func _physics_process(_delta: float) -> void:
 func choose_extract() -> void:
 	if run_state != RunState.ANCHOR_PROMPT or not player_on_anchor:
 		return
+	if not _return_backpack_cursor_stack():
+		_hud.show_message("Return the held backpack item before extracting.")
+		return
 
-	_inventory().receive_extracted_counts(carried_counts)
 	for rarity in warehouse_counts.keys():
 		warehouse_counts[rarity] += carried_counts[rarity]
 		carried_counts[rarity] = 0
@@ -118,9 +136,12 @@ func handle_player_discovered(reason: String) -> void:
 		return
 
 	var lost_value := carried_value
+	_return_backpack_cursor_stack()
+	_inventory().remove_counts_from_storage(STORAGE_BACKPACK, carried_counts)
 	for rarity in carried_counts.keys():
 		carried_counts[rarity] = 0
 	carried_value = 0
+	_refresh_backpack_ui()
 
 	if lost_value > 0:
 		_hud.show_message("Detected by %s. Carried treasure lost: %d." % [reason, lost_value])
@@ -131,6 +152,10 @@ func handle_player_discovered(reason: String) -> void:
 
 func is_anchor_prompt_visible() -> bool:
 	return _hud.is_anchor_prompt_visible()
+
+
+func is_backpack_ui_open() -> bool:
+	return _storage_ui.is_open()
 
 
 func set_map_stage(stage: int) -> void:
@@ -177,16 +202,18 @@ func _containers() -> Dictionary:
 func _wire_ui() -> void:
 	_hud.extract_pressed.connect(choose_extract)
 	_hud.continue_pressed.connect(choose_continue)
+	_storage_ui.set_backpack_only(true)
+	_storage_ui.storage_changed.connect(_on_storage_changed)
 
 
 func _on_treasure_collected(treasure: Node) -> void:
 	if run_state == RunState.EXTRACTED:
 		return
 
-	carried_counts[treasure.rarity] += 1
-	carried_value += treasure.value
+	var stored := _add_run_item_to_backpack(treasure.rarity, treasure.value)
 	treasures_remaining = maxi(0, treasures_remaining - 1)
-	_hud.show_message("Collected %s treasure worth %d." % [treasure.rarity, treasure.value])
+	if stored:
+		_hud.show_message("Collected %s treasure worth %d into backpack." % [treasure.rarity, treasure.value])
 	_update_status()
 
 
@@ -194,9 +221,8 @@ func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
 	if run_state == RunState.EXTRACTED:
 		return
 
-	carried_counts[rarity] += 1
-	carried_value += value
-	_hud.show_message("Opened chest and found %s treasure worth %d." % [rarity, value])
+	if _add_run_item_to_backpack(rarity, value):
+		_hud.show_message("Opened chest and packed %s treasure worth %d." % [rarity, value])
 	_update_status()
 
 
@@ -241,6 +267,45 @@ func _set_gameplay_enabled(enabled: bool) -> void:
 		monster.set_active(enabled)
 
 
+func toggle_backpack_ui() -> void:
+	_storage_ui.set_backpack_only(true)
+	_storage_ui.toggle_panel()
+
+
+func _add_run_item_to_backpack(rarity: String, value: int) -> bool:
+	var result: Dictionary = _inventory().add_to_storage(STORAGE_BACKPACK, rarity, 1)
+	if int(result["total_count"]) <= 0:
+		_hud.show_message("Backpack is full. The recovered item could not be stored.")
+		return false
+
+	carried_counts[rarity] += 1
+	carried_value += value
+	_refresh_backpack_ui()
+	return true
+
+
+func _refresh_backpack_ui() -> void:
+	if _storage_ui != null and _storage_ui.has_method("refresh"):
+		_storage_ui.refresh()
+
+
+func _return_backpack_cursor_stack() -> bool:
+	if _storage_ui == null or not _storage_ui.has_method("return_cursor_stack_to_storage"):
+		return true
+	return _storage_ui.return_cursor_stack_to_storage()
+
+
+func _on_storage_changed(message: String) -> void:
+	_hud.show_message(message)
+	_update_status()
+
+
+func _handle_key_input() -> void:
+	var viewport := get_viewport()
+	if viewport != null:
+		viewport.set_input_as_handled()
+
+
 func _update_status() -> void:
 	var state_text := "Searching"
 	if run_state == RunState.ANCHOR_PROMPT:
@@ -253,3 +318,7 @@ func _update_status() -> void:
 
 func _inventory():
 	return get_node("/root/PlayerInventory")
+
+
+func _music_manager():
+	return get_node_or_null("/root/MusicManager")

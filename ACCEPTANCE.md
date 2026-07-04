@@ -7,25 +7,29 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - The project launches into the main menu, and `Dive In` enters one underwater run scene.
 - The main menu includes a temporary debug button that enters the boat scene.
 - Codex has both `godot-ai` and `godot-mcp` MCP servers configured for the local Godot editor bridges.
-- The run scene contains visible player, treasure, cover, monster vision, and HUD placeholder art.
-- Player, monster, treasure, anchor, solid cover, seaweed cover, and HUD are separate scenes instantiated into the run scene.
+- The run scene contains visible player, treasure, cover, monster vision, HUD placeholder art, and a backpack-only inventory UI.
+- Player, monster, treasure, chest, anchor, solid cover, seaweed cover, and HUD are separate scenes instantiated into the run scene.
 - The player can move around a bounded 2D sea-floor map with visible rocks, wreckage, and seaweed cover.
-- Treasure pickups have common, rare, and legendary rarities, add their value to the carried haul, and have no capacity limit.
+- Pressing `B` in the run scene opens or closes a grid backpack UI that does not show warehouse slots.
+- Treasure pickups have common, rare, and legendary rarities, add their value to the carried haul, enter the backpack immediately, and have no capacity limit.
+- Opening a chest grants one random item rarity and places that item into the backpack immediately.
 - A patrolling monster follows a fixed loop, uses a front-facing cone plus line-of-sight check, and does not detect the player when the player is hidden in seaweed or blocked by solid cover.
-- When the monster detects or collides with the player, all currently carried treasure is cleared immediately while already banked treasure remains unchanged.
+- When the monster detects or collides with the player, all current-run carried treasure is cleared from the haul and backpack immediately while already banked, warehouse, and uploaded treasure remains unchanged.
 - The anchor exit only offers extraction choices while the player is standing in the anchor area.
-- Choosing extraction at the anchor banks all carried treasure, moves recovered items into the cross-scene backpack, and returns to the boat scene.
+- Choosing extraction at the anchor banks all carried treasure, keeps recovered items already in the cross-scene backpack without duplicating them, and returns to the boat scene.
 - Choosing continue at the anchor hides the prompt and keeps the run playable.
 - The boat scene contains a dive hatch, mission console, purifier device, upload device, and warehouse interaction areas.
 - Pressing `B` in the boat scene opens or closes a grid storage UI showing backpack and warehouse slots.
 - Interacting with the warehouse opens the storage UI.
 - Storage slots show item icons and stack counts.
+- Picking up a stack shows the held item icon and count next to the mouse cursor.
 - Left-click takes or places a whole stack.
 - Right-click takes half a stack when the hand is empty, or places one item when holding a stack.
 - Shift-click quickly transfers a stack between backpack and warehouse.
+- Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload device can move all backpack items into uploaded records and increase research points.
 - The warehouse UI can receive item stacks from backpack click operations and can send them back.
-- The implementation has a headless acceptance test covering scene loading, treasure collection, catch penalty, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, and scene split structure.
+- The implementation has a headless acceptance test covering scene loading, treasure collection, run backpack UI, random chest rewards, catch penalty, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, and scene split structure.
 
 ## Completion Measurement
 Completion is measured by the criteria above. This prototype is complete when all criteria pass in local Godot 4.7 validation.

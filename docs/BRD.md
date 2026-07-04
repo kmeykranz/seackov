@@ -10,10 +10,11 @@ Players should understand the loop within seconds: collect recovered objects, av
 In scope:
 - One playable underwater run.
 - Treasure pickup and carried haul tracking.
+- Run backpack visibility with pickup and chest rewards entering the backpack immediately.
 - Patrol monster detection and catch penalty.
 - Anchor extraction prompt and end-of-run banking.
 - Debug-accessible boat scene with dive hatch, mission console, purifier device, upload device, and warehouse.
-- Runtime backpack transfer from extracted runs to boat interactions.
+- Runtime backpack and warehouse interactions across the run and boat scenes.
 
 Out of scope:
 - Full ship-to-run campaign flow.
@@ -23,6 +24,6 @@ Out of scope:
 
 ## Success Signals
 - The prototype communicates risk versus reward without tutorial text.
-- The player can lose carried treasure through detection.
+- The player can lose current-run carried treasure from the haul and backpack through detection.
 - The player can bank treasure only by extracting from the anchor.
 - Recovered items can be stored or uploaded after returning to the boat.

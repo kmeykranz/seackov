@@ -1,17 +1,17 @@
 # DesignSpec - Underwater Run And Boat Inventory
 
 ## Scene Composition
-The run scene is a `Node2D` controlled by `RunSceneController`. It contains named world containers and an instanced HUD scene. `RunLevelBuilder` reads `RunLayout` data and instances separate actor, pickup, prop, and UI scenes into those containers.
+The run scene is a `Node2D` controlled by `RunSceneController`. It contains named world containers, an instanced HUD scene, and an instanced storage UI configured to show only the backpack. `RunLevelBuilder` reads `RunLayout` data and instances separate actor, pickup, prop, and UI scenes into those containers.
 
 The boat scene is a `Node2D` controlled by `BoatScene`. It contains a player diver and five interaction areas: dive hatch, mission console, purifier device, upload device, and warehouse. Interactions use the same `F` key prompt pattern as chests and the hatch.
 
-The storage transfer UI is a separate scene instanced into the boat. It shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection.
+The storage transfer UI is a separate scene instanced into the run scene and the boat. In the run scene it shows only the backpack grid; in the boat scene it shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, shows the held stack next to the mouse cursor, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection.
 
 ## Module Responsibilities
-- `RunSceneController`: run state, score/haul accounting, extraction choices, and actor signal wiring.
-- `PlayerInventory`: runtime cross-scene backpack, warehouse, uploaded item records, and research point accounting.
+- `RunSceneController`: run state, score/haul accounting, extraction choices, run backpack UI routing, and actor signal wiring.
+- `PlayerInventory`: runtime cross-scene backpack, warehouse, uploaded item records, research point accounting, and slot-level add/remove operations.
 - `BoatScene`: boat interaction prompts, boat status HUD, and calls into `PlayerInventory`.
-- `StorageTransferUi`: backpack/warehouse panel visibility, slot refresh, hand-held stack state, and click operation routing.
+- `StorageTransferUi`: backpack-only or backpack/warehouse panel visibility, slot refresh, hand-held stack state, cursor-following held item preview, and click operation routing.
 - `StorageSlot`: one clickable storage grid cell with an item icon and stack count.
 - `RunLayout`: explicit map bounds, spawn positions, cover specs, treasure specs, and monster patrol routes.
 - `RunLevelBuilder`: scene instantiation from layout data into run scene containers.
@@ -29,8 +29,10 @@ States:
 - `EXTRACTED`: Carried treasure has been banked and the player is returned to the boat scene.
 
 Events:
-- `treasure_collected`: Adds pickup value to carried haul.
-- `player_detected`: Clears carried haul.
+- `press_b`: Opens or closes the backpack-only grid UI.
+- `treasure_collected`: Adds pickup value to carried haul and adds the item to backpack slots immediately.
+- `chest_opened`: Picks one weighted random reward and adds it to carried haul and backpack slots immediately.
+- `player_detected`: Clears carried haul and removes current-run carried counts from backpack slots.
 - `anchor_entered`: `SEARCHING -> ANCHOR_PROMPT`.
 - `anchor_exited`: `ANCHOR_PROMPT -> SEARCHING`.
 - `continue_selected`: `ANCHOR_PROMPT -> SEARCHING`.
@@ -39,42 +41,49 @@ Events:
 Guards:
 - Extraction is ignored unless the anchor prompt is active and the player is still inside the anchor area.
 - Detection is ignored after extraction.
+- Run storage UI does not expose warehouse slots or Shift-transfer to warehouse.
 
 Side Effects:
 - Treasure collection removes the pickup from the map.
-- Detection clears only carried treasure.
-- Extraction moves carried treasure into the warehouse summary, sends recovered counts to the runtime backpack, disables active gameplay, and returns to the boat scene.
+- Chest opening marks the chest opened and emits exactly one reward item.
+- Detection clears only current-run carried treasure from score and backpack.
+- Extraction moves carried treasure into the run banked summary, keeps already-added backpack items without adding another copy, disables active gameplay, and returns to the boat scene.
 
 Failure and Rollback Paths:
-- If detection happens with no carried treasure, state remains playable and no banked treasure changes.
+- If detection happens with no carried treasure, state remains playable and no banked, warehouse, or uploaded treasure changes.
 - If the player leaves the anchor before choosing, the prompt closes and extraction cannot be confirmed.
 - If extraction is chosen, the rollback path is returning from the boat debug hatch into a new run.
 
 ## Boat Inventory State Machine
 States:
-- `Backpack`: extracted items are stored in backpack grid slots.
+- `Backpack`: recovered run items are stored in backpack grid slots.
 - `Warehouse`: items are stored in warehouse grid slots.
 - `Hand`: the storage UI is holding a temporary stack selected from a slot.
 - `Uploaded`: backpack items have been transmitted and converted into research points.
 
 Events:
-- `extract_run`: current run carried counts are added to the backpack.
+- `collect_run_item`: current run pickups and chest rewards are added to the backpack.
+- `extract_run`: current run carried counts are banked by the run, but are not added to the backpack a second time.
 - `left_click_slot`: takes a whole stack when hand is empty, otherwise places or swaps the held stack.
 - `right_click_slot`: takes half a stack when hand is empty, otherwise places one item into a compatible slot.
 - `shift_click_slot`: quick-transfers the clicked stack to the other storage location.
+- `player_detected`: removes current-run carried counts from backpack.
 - `upload_backpack`: all backpack items move to uploaded counts and add research points.
 
 Guards:
 - Clicks on empty slots are no-ops unless the hand is holding a stack.
 - Right-click placement only works on empty slots or matching non-full stacks.
 - Shift-click is ignored while the hand is holding a stack.
+- Shift-click is disabled in backpack-only run mode because the warehouse is not visible.
+- Different item types never merge into one slot.
 - Upload is a no-op when the backpack is empty.
-- Detection before extraction does not touch backpack, warehouse, or uploaded records.
+- Detection before extraction removes only current-run carried backpack counts; warehouse and uploaded records are unchanged.
 
 Side Effects:
 - Boat status text refreshes after any interaction.
 - Uploading uses existing rarity values as research points.
 - Storage UI refreshes after any click operation.
+- Held-stack preview follows the mouse cursor while the hand is not empty.
 
 ## Placeholder Art
 Placeholder art is intentionally high-contrast and scene-local: cyan diver, red patrol, translucent red vision cone, yellow/blue/magenta treasure, green seaweed, teal reef, brown wreckage, and panel-backed HUD.
