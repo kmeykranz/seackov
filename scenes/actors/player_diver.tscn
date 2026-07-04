@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://c1jxgqyydh73k" path="res://assets/player-stand.png" id="2_kn255"]
 [ext_resource type="Texture2D" uid="uid://ee65f3wqidbf" path="res://assets/player-down.png" id="3_5m5js"]
 [ext_resource type="Texture2D" uid="uid://c0p8jctxm4hey" path="res://assets/player-left.png" id="3_tnxdv"]
+[ext_resource type="Texture2D" uid="uid://co3haj0ctitti" path="res://assets/player-up.png" id="4_eaxf8"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
@@ -55,6 +56,26 @@ region = Rect2(7386, 0, 1231, 1232)
 [sub_resource type="AtlasTexture" id="AtlasTexture_v6k3r"]
 atlas = ExtResource("3_5m5js")
 region = Rect2(8617, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jqgj0"]
+atlas = ExtResource("4_eaxf8")
+region = Rect2(0, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7qrej"]
+atlas = ExtResource("4_eaxf8")
+region = Rect2(1231, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bjvjd"]
+atlas = ExtResource("4_eaxf8")
+region = Rect2(2462, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3j2r6"]
+atlas = ExtResource("4_eaxf8")
+region = Rect2(3693, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bsgu1"]
+atlas = ExtResource("4_eaxf8")
+region = Rect2(4924, 0, 1231, 1232)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_uk7jb"]
 atlas = ExtResource("3_tnxdv")
@@ -130,28 +151,19 @@ animations = [{
 }, {
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_tqq87")
+"texture": SubResource("AtlasTexture_jqgj0")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_f5vtx")
+"texture": SubResource("AtlasTexture_7qrej")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_lxaqk")
+"texture": SubResource("AtlasTexture_bjvjd")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_nbl7f")
+"texture": SubResource("AtlasTexture_3j2r6")
 }, {
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_wadsw")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_yo6xc")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_466dd")
-}, {
-"duration": 1.0,
-"texture": SubResource("AtlasTexture_v6k3r")
+"texture": SubResource("AtlasTexture_bsgu1")
 }],
 "loop": 1,
 "name": &"up",
@@ -196,7 +208,7 @@ polygon = PackedVector2Array(0, -42, 30, -30, 42, 0, 30, 30, 0, 42, -30, 30, -42
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=116086953]
 scale = Vector2(0.12, 0.12)
 sprite_frames = SubResource("SpriteFrames_1l68p")
-animation = &"down"
+animation = &"up"
 
 [node name="Camera2D" type="Camera2D" parent="." unique_id=1466824116]
 position_smoothing_enabled = true

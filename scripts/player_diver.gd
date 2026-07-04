@@ -1,8 +1,8 @@
 extends CharacterBody2D
 class_name PlayerDiver
 
-@export var speed: float = 260.0
-
+@export var speed: float = 1000
+#260
 var control_enabled: bool = true
 var facing: Vector2 = Vector2.RIGHT
 var cover_depth: int = 0
@@ -25,7 +25,7 @@ func configure_camera(_bounds: Rect2) -> void:
 	#camera.limit_top = int(bounds.position.y)
 	#camera.limit_right = int(bounds.end.x)
 	#camera.limit_bottom = int(bounds.end.y)
-	camera.zoom = Vector2(1.2, 1.2)
+	camera.zoom = Vector2(1.4, 1.4)
 	camera.make_current()
 
 
@@ -93,7 +93,7 @@ func _update_movement_visuals(input_vector: Vector2) -> void:
 	body_sprite.flip_v = false
 	if input_vector != Vector2.ZERO:
 		if absf(input_vector.y) > absf(input_vector.x):
-			desired_animation = &"down" if input_vector.y > 0.0 else &"down"
+			desired_animation = &"down" if input_vector.y > 0.0 else &"up"
 		else:
 			desired_animation = &"walk"
 
