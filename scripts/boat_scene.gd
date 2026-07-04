@@ -67,6 +67,9 @@ func perform_interaction(action: String) -> bool:
 	match action:
 		ACTION_DIVE:
 			_transitioning = true
+			MusicManager.diving_from_boat = true
+			MusicManager.play_dive_alarm()
+			await get_tree().create_timer(0.3).timeout
 			get_tree().change_scene_to_file(RunScenePath)
 			return true
 		ACTION_UPLOAD:
