@@ -34,7 +34,7 @@ var _available_actions: Array[String] = []
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
-	MusicManager.play_lobby_music()
+	MusicManager.play_boat_music()
 	for action in _interaction_areas.keys():
 		var area: Area2D = _interaction_areas[action]
 		area.body_entered.connect(_on_interaction_body_entered.bind(action))
