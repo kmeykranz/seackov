@@ -36,6 +36,17 @@ theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 34
 text = "Dive In"
 
+[node name="boat_debug" type="Button" parent="."]
+layout_mode = 0
+offset_left = 812.0
+offset_top = 636.0
+offset_right = 1072.0
+offset_bottom = 682.0
+scale = Vector2(1.15, 1.15)
+theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_font_sizes/font_size = 24
+text = "Boat Debug"
+
 [node name="about" type="Button" parent="." unique_id=1090443531]
 layout_mode = 0
 offset_left = 803.0

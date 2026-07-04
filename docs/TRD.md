@@ -1,10 +1,14 @@
-# TRD - Single Run Implementation
+# TRD - Run And Boat Inventory Implementation
 
 ## Engine
 Godot 4.7 stable.
 
 ## Technical Approach
 - `RunSceneController` owns only run state, haul accounting, extraction choices, and signal wiring.
+- `PlayerInventory` is a Godot autoload that owns runtime backpack, warehouse, uploaded records, and research point totals.
+- `BoatScene` owns the boat interaction zones and delegates item state changes to `PlayerInventory`.
+- `StorageTransferUi` owns the storage panel, creates fixed grid slots, tracks the temporary hand stack, and calls slot-level `PlayerInventory` methods.
+- `StorageSlot` owns Godot `Control._gui_input` callbacks for one clickable grid cell.
 - `RunLayout` provides explicit level data for bounds, spawns, cover, treasure, and patrol routes.
 - `RunLevelBuilder` instantiates separate scenes into the run scene containers.
 - `PlayerDiver` owns player movement, camera limits, and hidden-cover state.
@@ -20,8 +24,9 @@ Godot 4.7 stable.
 - `scenes/props/anchor_exit.tscn`
 - `scenes/props/solid_cover.tscn`
 - `scenes/props/seaweed_cover.tscn`
-- `scenes/props/sea_floor.tscn`
 - `scenes/ui/run_hud.tscn`
+- `scenes/ui/storage_transfer_ui.tscn`
+- `scenes/boat_scene.tscn`
 
 ## MCP Configuration
 - Godot AI plugin is enabled in `project.godot` and exposes `godot-ai` through `http://127.0.0.1:8000/mcp`.
@@ -30,11 +35,17 @@ Godot 4.7 stable.
 ## Godot APIs Used
 - `CharacterBody2D` and `move_and_slide()` for player and monster movement.
 - `Area2D` body overlap signals for treasure, anchor, seaweed, and monster collision checks.
+- `Area2D` body overlap signals for boat interaction prompts.
+- `Control._gui_input` and `InputEventMouseButton` for Minecraft-like inventory clicks.
+- Project autoloads for runtime cross-scene inventory state.
 - `PhysicsRayQueryParameters2D` with `PhysicsDirectSpaceState2D.intersect_ray()` for solid-cover line-of-sight blocking.
 
 ## References
 - Godot CharacterBody2D documentation: https://docs.godotengine.org/en/stable/classes/class_characterbody2d.html
 - Godot Area2D documentation: https://docs.godotengine.org/en/stable/classes/class_area2d.html
+- Godot Control documentation: https://docs.godotengine.org/en/stable/classes/class_control.html
+- Godot InputEventMouseButton documentation: https://docs.godotengine.org/en/stable/classes/class_inputeventmousebutton.html
+- Godot Singletons Autoload documentation: https://docs.godotengine.org/en/stable/tutorials/scripting/singletons_autoload.html
 - Godot ray-casting documentation: https://docs.godotengine.org/en/stable/tutorials/physics/ray-casting.html
 
 ## Collision Layers
@@ -46,4 +57,4 @@ Godot 4.7 stable.
 - Layer 6: seaweed hiding areas.
 
 ## Rollback
-Revert the added gameplay `scenes/`, `scripts/`, `tests/`, `docs/` files and restore `project.godot` to the previous launch/plugin configuration. Remove the `godot-mcp` Codex MCP entry with `codex mcp remove godot-mcp` if the editor bridge is no longer needed.
+Revert the added gameplay `scenes/`, `scripts/`, `tests/`, `docs/` files and restore `project.godot` to the previous launch/plugin/autoload configuration. Remove the `godot-mcp` Codex MCP entry with `codex mcp remove godot-mcp` if the editor bridge is no longer needed.
