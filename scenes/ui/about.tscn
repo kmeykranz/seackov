@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://b3tlvqvcfbgbm"]
+
+[ext_resource type="Texture2D" uid="uid://c7f3wb55tkifk" path="res://assets/ui-init.png" id="1_e66il"]
+[ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_m186m"]
+
+[node name="About" type="Control" unique_id=2034737801]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="background" type="Sprite2D" parent="." unique_id=782264683]
+modulate = Color(1, 1, 1, 0.85490197)
+position = Vector2(642, 357.5)
+scale = Vector2(1.31893, 1.0610119)
+texture = ExtResource("1_e66il")
+
+[node name="Title" type="Sprite2D" parent="." unique_id=123046073]
+position = Vector2(643, 96.725)
+scale = Vector2(0.645, 0.645)
+texture = ExtResource("2_m186m")
