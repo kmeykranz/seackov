@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://bvhtuk3bysne5"]
+
+[ext_resource type="Script" uid="uid://cvw3w6rhfq7yo" path="res://scripts/boat_scene.gd" id="1_5rki1"]
+[ext_resource type="PackedScene" uid="uid://e51xe1g2m4p5" path="res://scenes/actors/player_diver.tscn" id="2_xm3pv"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_manhole"]
+radius = 48.0
+
+[node name="BoatScene" type="Node2D" unique_id=391469930]
+script = ExtResource("1_5rki1")
+
+[node name="World" type="Node2D" parent="." unique_id=1920583748]
+
+[node name="PlayerDiver" parent="World" unique_id=1421304574 instance=ExtResource("2_xm3pv")]
+
+[node name="Manhole" type="Area2D" parent="World" unique_id=1592771964]
+position = Vector2(200, 0)
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Manhole" unique_id=1189261146]
+shape = SubResource("CircleShape2D_manhole")
+
+[node name="Ring" type="Polygon2D" parent="World/Manhole" unique_id=2058701884]
+color = Color(0.22, 0.25, 0.3, 1)
+polygon = PackedVector2Array(-40, -8, 40, -8, 46, 12, -46, 12)
+
+[node name="Lid" type="Polygon2D" parent="World/Manhole" unique_id=127430521]
+color = Color(0.4, 0.44, 0.5, 1)
+polygon = PackedVector2Array(-32, -28, 32, -28, 40, -8, -40, -8)
+
+[node name="Grid" type="Polygon2D" parent="World/Manhole" unique_id=335027009]
+color = Color(0.18, 0.18, 0.2, 1)
+polygon = PackedVector2Array(-4, -26, 4, -26, 4, 8, -4, 8)
+
+[node name="PromptLabel" type="Label" parent="World/Manhole" unique_id=1061846922]
+visible = false
+offset_left = -60.0
+offset_top = -58.0
+offset_right = 60.0
+offset_bottom = -32.0
+text = "F 进入海底"
+horizontal_alignment = 1
+
+[node name="Background" type="Sprite2D" parent="World" unique_id=2031828128]
+
+[node name="Cover" type="Node2D" parent="World" unique_id=807093317]
+
+[node name="Pickups" type="Node2D" parent="World" unique_id=1351064417]
+
+[node name="Exits" type="Node2D" parent="World" unique_id=1455317923]
+
+[node name="Actors" type="Node2D" parent="World" unique_id=1562207212]
