@@ -6,7 +6,6 @@ const RunLayout := preload("res://scripts/level/run_layout.gd")
 const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
 const LobbyScenePath := "res://scenes/ui/lobby.tscn"
-const FailScenePath := "res://scenes/ui/fail.tscn"
 const STORAGE_BACKPACK := "backpack"
 
 const PLAYER_LAYER: int = CollisionLayers.PLAYER
@@ -208,11 +207,8 @@ func handle_player_caught(reason: String) -> void:
 	_update_status()
 	_refresh_backpack_ui()
 	_stop_bubble()
-
-	get_tree().paused = true
-	# await get_tree().create_timer(1.0).timeout
-	get_tree().paused = false
-	_transition_to_fail()
+	_leave_pause_mode()
+	get_tree().change_scene_to_file(BoatScenePath)
 
 
 func is_anchor_prompt_visible() -> bool:
@@ -576,27 +572,6 @@ func _stop_bubble() -> void:
 	var mgr: Node = _music_manager()
 	if mgr != null:
 		mgr.stop_bubble()
-
-
-func _transition_to_fail() -> void:
-	var viewport_size := get_viewport().get_visible_rect().size
-
-	var overlay := ColorRect.new()
-	overlay.color = Color.BLACK
-	overlay.modulate = Color.TRANSPARENT
-	overlay.size = viewport_size
-	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	var canvas := CanvasLayer.new()
-	canvas.layer = 128
-	canvas.add_child(overlay)
-	add_child(canvas)
-
-	var tween := create_tween()
-	tween.tween_property(overlay, "modulate", Color.BLACK, 0.5)
-	await tween.finished
-
-	get_tree().change_scene_to_file(FailScenePath)
 
 
 func _progress():
