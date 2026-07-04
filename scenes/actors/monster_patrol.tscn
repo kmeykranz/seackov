@@ -1,45 +1,98 @@
-[gd_scene load_steps=4 format=4]
+[gd_scene format=3 uid="uid://bsd1t12bkv3ms"]
 
-[ext_resource type="Script" path="res://scripts/monster_patrol.gd" id="1"]
+[ext_resource type="Script" uid="uid://bbmnyjqtbfgce" path="res://scripts/monster_patrol.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://kw8re0yxphii" path="res://assets/octupus.png" id="2_0delp"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 radius = 27.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_2j7gr"]
+atlas = ExtResource("2_0delp")
+region = Rect2(0, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vjyts"]
+atlas = ExtResource("2_0delp")
+region = Rect2(2048, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_txhm2"]
+atlas = ExtResource("2_0delp")
+region = Rect2(4096, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_x6c3n"]
+atlas = ExtResource("2_0delp")
+region = Rect2(6144, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nbte3"]
+atlas = ExtResource("2_0delp")
+region = Rect2(8192, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s17ac"]
+atlas = ExtResource("2_0delp")
+region = Rect2(10240, 0, 2048, 2048)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vaan1"]
+atlas = ExtResource("2_0delp")
+region = Rect2(12288, 0, 2048, 2048)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1l68p"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2j7gr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vjyts")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_txhm2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_x6c3n")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nbte3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s17ac")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vaan1")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
 [sub_resource type="CircleShape2D" id="CircleShape2D_catch"]
 radius = 34.0
 
-[node name="MonsterPatrol" type="CharacterBody2D"]
+[node name="MonsterPatrol" type="CharacterBody2D" unique_id=191367317]
 script = ExtResource("1")
 
-[node name="VisionCone" type="Polygon2D" parent="."]
+[node name="VisionCone" type="Polygon2D" parent="." unique_id=545258184]
 color = Color(1, 0.18, 0.1, 0.24)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=518161787]
 shape = SubResource("CircleShape2D_monster")
 
-[node name="BodyPivot" type="Node2D" parent="."]
+[node name="BodyPivot" type="Node2D" parent="." unique_id=1824437351]
 
-[node name="Body" type="Polygon2D" parent="BodyPivot"]
-color = Color(0.96, 0.18, 0.15, 1)
-polygon = PackedVector2Array(42, 0, 8, -25, -32, -18, -16, 0, -32, 18, 8, 25)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=6297205]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_1l68p")
+autoplay = "default"
+frame = 3
+frame_progress = 0.49969962
 
-[node name="Glow" type="Polygon2D" parent="BodyPivot"]
-color = Color(1, 0.86, 0.2, 1)
-polygon = PackedVector2Array(22, -8, 40, -4, 40, 4, 22, 8)
-
-[node name="Tail" type="Polygon2D" parent="BodyPivot"]
-color = Color(0.72, 0.08, 0.10, 1)
-polygon = PackedVector2Array(-24, 0, -52, -24, -42, 0, -52, 24)
-
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=952543721]
 offset_left = -36.0
 offset_top = 30.0
 offset_right = 50.0
 offset_bottom = 53.0
 text = "PATROL"
 
-[node name="CatchArea" type="Area2D" parent="."]
+[node name="CatchArea" type="Area2D" parent="." unique_id=1898709766]
 collision_layer = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CatchArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CatchArea" unique_id=1807200953]
 shape = SubResource("CircleShape2D_catch")

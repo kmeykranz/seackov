@@ -8,6 +8,7 @@ const PlayerScene := preload("res://scenes/actors/player_diver.tscn")
 const MonsterScene := preload("res://scenes/actors/monster_patrol.tscn")
 const TreasureScene := preload("res://scenes/pickups/treasure_pickup.tscn")
 const AnchorScene := preload("res://scenes/props/anchor_exit.tscn")
+const ChestScenePath := "res://scenes/props/chest_box.tscn"
 
 
 func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
@@ -16,6 +17,7 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	_spawn_boundaries(containers["cover"], world_rect)
 	_spawn_solid_cover(containers["cover"], layout["solid_cover"])
 	_spawn_seaweed(containers["cover"], layout["seaweed"])
+	var chests := _spawn_chests(containers["cover"], layout["chests"])
 
 	var player := _spawn_player(containers["actors"], layout["player_spawn"], world_rect)
 	var anchor := _spawn_anchor(containers["exits"], layout["anchor_spawn"])
@@ -25,6 +27,7 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	return {
 		"player": player,
 		"anchor": anchor,
+		"chests": chests,
 		"treasures": treasures,
 		"monsters": monsters,
 		"world_rect": world_rect,
@@ -32,10 +35,10 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 
 
 func _spawn_sea_floor(parent: Node, world_rect: Rect2) -> void:
-	var floor := SeaFloorScene.instantiate()
-	floor.name = "SeaFloor"
-	parent.add_child(floor)
-	floor.configure(world_rect)
+	var sea_floor := SeaFloorScene.instantiate()
+	sea_floor.name = "SeaFloor"
+	parent.add_child(sea_floor)
+	sea_floor.configure(world_rect)
 
 
 func _spawn_boundaries(parent: Node, world_rect: Rect2) -> void:
@@ -90,6 +93,21 @@ func _spawn_anchor(parent: Node, spawn_position: Vector2) -> Node:
 	anchor.collision_mask = CollisionLayers.PLAYER
 	parent.add_child(anchor)
 	return anchor
+
+
+func _spawn_chests(parent: Node, specs: Array) -> Array:
+	var chest_scene: PackedScene = load(ChestScenePath)
+	var chests := []
+	for index in range(specs.size()):
+		var spec: Dictionary = specs[index]
+		var chest: Area2D = chest_scene.instantiate()
+		chest.name = "TreasureChest_%02d" % index
+		chest.position = spec["position"]
+		chest.collision_layer = 0
+		chest.collision_mask = CollisionLayers.PLAYER
+		parent.add_child(chest)
+		chests.append(chest)
+	return chests
 
 
 func _spawn_treasures(parent: Node, specs: Array) -> Array:

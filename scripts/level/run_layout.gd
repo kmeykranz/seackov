@@ -1,6 +1,6 @@
 extends RefCounted
 
-const WORLD_RECT := Rect2(Vector2.ZERO, Vector2(2200, 1350))
+const WORLD_RECT := Rect2(Vector2.ZERO, Vector2(5000, 5000))
 
 
 static func build() -> Dictionary:
@@ -8,6 +8,9 @@ static func build() -> Dictionary:
 		"world_rect": WORLD_RECT,
 		"player_spawn": Vector2(170, 320),
 		"anchor_spawn": Vector2(2020, 1160),
+		"chests": [
+			{"position": Vector2(430, 360)},
+		],
 		"solid_cover": [
 			{"name": "North Reef", "position": Vector2(520, 260), "size": Vector2(260, 110), "kind": "reef"},
 			{"name": "Wreck Bow", "position": Vector2(970, 520), "size": Vector2(360, 95), "kind": "wreck"},

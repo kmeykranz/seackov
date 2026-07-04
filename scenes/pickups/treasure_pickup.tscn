@@ -1,25 +1,25 @@
-[gd_scene load_steps=3 format=4]
+[gd_scene format=3 uid="uid://dcq3duidc788l"]
 
-[ext_resource type="Script" path="res://scripts/treasure_pickup.gd" id="1"]
+[ext_resource type="Script" uid="uid://dk1ajam6a35kt" path="res://scripts/treasure_pickup.gd" id="1"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_treasure"]
 radius = 24.0
 
-[node name="TreasurePickup" type="Area2D"]
+[node name="TreasurePickup" type="Area2D" unique_id=996209898]
 script = ExtResource("1")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1140071178]
 shape = SubResource("CircleShape2D_treasure")
 
-[node name="Ring" type="Polygon2D" parent="."]
+[node name="Ring" type="Polygon2D" parent="." unique_id=493029644]
 color = Color(1, 0.84, 0.22, 0.3)
 polygon = PackedVector2Array(0, -34, 24, -24, 34, 0, 24, 24, 0, 34, -24, 24, -34, 0, -24, -24)
 
-[node name="Gem" type="Polygon2D" parent="."]
+[node name="Gem" type="Polygon2D" parent="." unique_id=414391236]
 color = Color(1, 0.84, 0.22, 1)
 polygon = PackedVector2Array(0, -24, 22, 0, 0, 24, -22, 0)
 
-[node name="ValueLabel" type="Label" parent="."]
+[node name="ValueLabel" type="Label" parent="." unique_id=862122355]
 offset_left = -19.0
 offset_top = 23.0
 offset_right = 35.0
