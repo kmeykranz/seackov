@@ -82,3 +82,12 @@ offset_bottom = 956.0
 theme_override_fonts/font = ExtResource("4_exo2l")
 theme_override_font_sizes/font_size = 46
 text = "BACK"
+
+[node name="Label4" type="Label" parent="." unique_id=1840322382]
+layout_mode = 0
+offset_left = 1174.0
+offset_top = 745.00006
+offset_right = 1296.0
+offset_bottom = 768.00006
+scale = Vector2(1.105, 1.105)
+text = "(AI还是太好用了)"

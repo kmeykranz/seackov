@@ -63,6 +63,10 @@ func _ready() -> void:
 	_build_level()
 	_wire_ui()
 	_update_status()
+
+	MusicManager.play_underwater()
+	MusicManager.diving_from_boat = false
+
 	_hud.show_message("Collect treasure, hide in seaweed, use cover, extract at the anchor.")
 
 
