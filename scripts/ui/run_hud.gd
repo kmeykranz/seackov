@@ -1,14 +1,12 @@
 extends CanvasLayer
 
 signal extract_pressed
-signal continue_pressed
 
 @onready var status_label: Label = $StatusPanel/MarginContainer/StatusLabel
 @onready var message_label: Label = $MessagePanel/MarginContainer/MessageLabel
 @onready var anchor_prompt: PanelContainer = $AnchorPrompt
 @onready var prompt_label: Label = $AnchorPrompt/MarginContainer/VBoxContainer/PromptLabel
 @onready var extract_button: Button = $AnchorPrompt/MarginContainer/VBoxContainer/ExtractButton
-@onready var continue_button: Button = $AnchorPrompt/MarginContainer/VBoxContainer/ContinueButton
 @onready var end_panel: PanelContainer = $EndPanel
 @onready var end_label: Label = $EndPanel/MarginContainer/EndLabel
 
@@ -16,8 +14,8 @@ signal continue_pressed
 func _ready() -> void:
 	anchor_prompt.visible = false
 	end_panel.visible = false
+	extract_button.visible = false
 	extract_button.pressed.connect(func() -> void: extract_pressed.emit())
-	continue_button.pressed.connect(func() -> void: continue_pressed.emit())
 
 
 func update_status(state_text: String, carried_value: int, carried_counts: Dictionary, warehouse_value: int, treasures_remaining: int) -> void:
@@ -37,7 +35,7 @@ func show_message(text: String) -> void:
 
 
 func show_anchor_prompt(carried_value: int) -> void:
-	prompt_label.text = "Anchor reached. Bank carried value %d now, or keep searching." % carried_value
+	prompt_label.text = "Press F to return to ship and settle.\nCarried value: %d" % carried_value
 	anchor_prompt.visible = true
 
 

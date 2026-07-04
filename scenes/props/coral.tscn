@@ -1,16 +1,16 @@
 [gd_scene format=3 uid="uid://cjet08yf6nv0n"]
 
-[ext_resource type="Script" path="res://scripts/props/coral_cover.gd" id="1_xhq7e"]
+[ext_resource type="Script" uid="uid://0q1ty534kp67" path="res://scripts/props/coral_cover.gd" id="1_xhq7e"]
 [ext_resource type="Texture2D" uid="uid://bnfka3s6uwc5p" path="res://assets/coral1.png" id="2_xhq7e"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_seaweed"]
-size = Vector2(172, 129)
+size = Vector2(107, 129)
 
 [node name="CoralCover" type="StaticBody2D" unique_id=2145842995]
 script = ExtResource("1_xhq7e")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1309801101]
-position = Vector2(4, -10.5)
+position = Vector2(9.5, -10.5)
 shape = SubResource("RectangleShape2D_seaweed")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1711859775]

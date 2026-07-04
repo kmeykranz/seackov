@@ -101,6 +101,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if get_tree().paused:
 		return
 
+	if run_state == RunState.ANCHOR_PROMPT and event.keycode == KEY_F:
+		_handle_key_input()
+		choose_extract()
+		return
+
 	if event.keycode == KEY_B:
 		_handle_key_input()
 		toggle_backpack_ui()
@@ -289,7 +294,6 @@ func _containers() -> Dictionary:
 
 func _wire_ui() -> void:
 	_hud.extract_pressed.connect(choose_extract)
-	_hud.continue_pressed.connect(choose_continue)
 	_pause_menu.resume_pressed.connect(resume_from_pause)
 	_pause_menu.settings_pressed.connect(show_pause_settings)
 	_pause_menu.exit_to_menu_pressed.connect(exit_to_main_menu)
@@ -334,7 +338,7 @@ func _on_anchor_player_entered(new_active_anchor: Node) -> void:
 	if run_state != RunState.EXTRACTED:
 		run_state = RunState.ANCHOR_PROMPT
 		_hud.show_anchor_prompt(carried_value)
-		_hud.show_message("Anchor ready. Choose extraction or keep searching.")
+		_hud.show_message("Anchor ready. Press F to return to ship and settle.")
 		_update_status()
 
 

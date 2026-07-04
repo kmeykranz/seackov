@@ -57,7 +57,7 @@ func _run() -> void:
 
 	_test_initial_state()
 	_test_scene_split_and_visibility()
-	await _test_pause_menu_controls()
+	_test_pause_menu_controls()
 	await _test_player_movement_and_perimeter()
 	await _test_region_progression()
 	await _test_collect_and_clear_penalty()
@@ -367,19 +367,12 @@ func _test_anchor_choices_and_extraction() -> void:
 	_assert(game.player_on_anchor, "standing on anchor is tracked")
 	_assert(game.is_anchor_prompt_visible(), "anchor prompt is visible at anchor")
 
-	game.choose_continue()
-	_assert(game.run_state == RunSceneControllerScript.RunState.SEARCHING, "continue keeps the run active")
-	_assert(not game.is_anchor_prompt_visible(), "continue hides anchor prompt")
-	game.choose_extract()
-	_assert(game.run_state == RunSceneControllerScript.RunState.SEARCHING, "hidden anchor prompt cannot extract")
-
-	game.player.global_position = Vector2(120, 140)
-	await physics_frame
-	await physics_frame
-	game.player.global_position = game.anchor.global_position
-	await physics_frame
-	await physics_frame
-
+	var f_key := InputEventKey.new()
+	f_key.keycode = KEY_F
+	f_key.pressed = true
+	game._unhandled_input(f_key)
+	_assert(game.run_state == RunSceneControllerScript.RunState.EXTRACTED, "F extracts at the anchor")
+	_assert(not game.is_anchor_prompt_visible(), "F hides anchor prompt")
 	current_scene = game
 	game.choose_extract()
 	_assert(game.run_state == RunSceneControllerScript.RunState.EXTRACTED, "extracting ends the run")

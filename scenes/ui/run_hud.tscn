@@ -73,10 +73,12 @@ autowrap_mode = 3
 
 [node name="ExtractButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
 layout_mode = 2
+visible = false
 text = "Return to ship and settle"
 
 [node name="ContinueButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
 layout_mode = 2
+visible = false
 text = "Stay underwater"
 
 [node name="EndPanel" type="PanelContainer" parent="."]
