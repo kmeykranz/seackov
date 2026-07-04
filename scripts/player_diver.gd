@@ -8,27 +8,30 @@ var facing: Vector2 = Vector2.RIGHT
 var cover_depth: int = 0
 
 @onready var body_pivot: Node2D = $BodyPivot
+@onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
 @onready var hidden_ring: Polygon2D = $HiddenRing
 @onready var camera: Camera2D = $Camera2D
 
 
 func _ready() -> void:
 	add_to_group("player")
+	_update_movement_visuals(Vector2.ZERO)
 	_update_hidden_visual()
 
 
 func configure_camera(bounds: Rect2) -> void:
-	camera.limit_left = int(bounds.position.x)
-	camera.limit_top = int(bounds.position.y)
-	camera.limit_right = int(bounds.end.x)
-	camera.limit_bottom = int(bounds.end.y)
-	camera.zoom = Vector2(0.82, 0.82)
+	#camera.limit_left = int(bounds.position.x)
+	#camera.limit_top = int(bounds.position.y)
+	#camera.limit_right = int(bounds.end.x)
+	#camera.limit_bottom = int(bounds.end.y)
+	camera.zoom = Vector2(1.2, 1.2)
 	camera.make_current()
 
 
 func _physics_process(_delta: float) -> void:
 	if not control_enabled:
 		velocity = Vector2.ZERO
+		_update_movement_visuals(Vector2.ZERO)
 		move_and_slide()
 		return
 
@@ -36,7 +39,7 @@ func _physics_process(_delta: float) -> void:
 	velocity = input_vector * speed
 	if input_vector != Vector2.ZERO:
 		facing = input_vector.normalized()
-		body_pivot.rotation = facing.angle()
+	_update_movement_visuals(input_vector)
 
 	move_and_slide()
 
@@ -77,3 +80,13 @@ func _update_hidden_visual() -> void:
 		return
 	hidden_ring.visible = is_hidden()
 	modulate = Color(0.72, 1.0, 0.78, 0.82) if is_hidden() else Color.WHITE
+
+
+func _update_movement_visuals(input_vector: Vector2) -> void:
+	body_pivot.rotation = 0.0
+	body_sprite.flip_h = facing.x > 0.0
+	if input_vector != Vector2.ZERO:
+		if body_sprite.animation != &"walk":
+			body_sprite.play("walk")
+	elif body_sprite.animation != &"default":
+		body_sprite.play("default")

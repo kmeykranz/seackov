@@ -1,54 +1,112 @@
-[gd_scene load_steps=3 format=4]
+[gd_scene format=3 uid="uid://e51xe1g2m4p5"]
 
-[ext_resource type="Script" path="res://scripts/player_diver.gd" id="1"]
+[ext_resource type="Script" uid="uid://b1j7wbs0i4a54" path="res://scripts/player_diver.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://c1jxgqyydh73k" path="res://assets/player-front.png" id="2_kn255"]
+[ext_resource type="Texture2D" uid="uid://c0p8jctxm4hey" path="res://assets/player-left.png" id="3_tnxdv"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_player"]
 radius = 24.0
 
-[node name="PlayerDiver" type="CharacterBody2D"]
+[sub_resource type="AtlasTexture" id="AtlasTexture_tnxdv"]
+atlas = ExtResource("2_kn255")
+region = Rect2(0, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5m5js"]
+atlas = ExtResource("2_kn255")
+region = Rect2(1231, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eaxf8"]
+atlas = ExtResource("2_kn255")
+region = Rect2(2462, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qu3um"]
+atlas = ExtResource("2_kn255")
+region = Rect2(3693, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_uk7jb"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(0, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_omenj"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(1231, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nq8yy"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(2462, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_c52yv"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(3693, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_1gma3"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(4924, 0, 1231, 1232)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dbwyy"]
+atlas = ExtResource("3_tnxdv")
+region = Rect2(6155, 0, 1231, 1232)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_1l68p"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_tnxdv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5m5js")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eaxf8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_qu3um")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_uk7jb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_omenj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nq8yy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_c52yv")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_1gma3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dbwyy")
+}],
+"loop": 1,
+"name": &"walk",
+"speed": 5.0
+}]
+
+[node name="PlayerDiver" type="CharacterBody2D" unique_id=1421304574]
 script = ExtResource("1")
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1689078756]
 shape = SubResource("CircleShape2D_player")
 
-[node name="HiddenRing" type="Polygon2D" parent="."]
+[node name="HiddenRing" type="Polygon2D" parent="." unique_id=646521128]
 color = Color(0.35, 1, 0.48, 0.42)
 polygon = PackedVector2Array(0, -42, 30, -30, 42, 0, 30, 30, 0, 42, -30, 30, -42, 0, -30, -30)
 
-[node name="BodyPivot" type="Node2D" parent="."]
+[node name="BodyPivot" type="Node2D" parent="." unique_id=714993090]
 
-[node name="FlipperLeft" type="Polygon2D" parent="BodyPivot"]
-position = Vector2(-8, -17)
-color = Color(0.02, 0.58, 0.76, 1)
-polygon = PackedVector2Array(-12, -5, 16, -9, 22, 2, -8, 8)
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=116086953]
+scale = Vector2(0.12, 0.12)
+sprite_frames = SubResource("SpriteFrames_1l68p")
+animation = &"walk"
 
-[node name="FlipperRight" type="Polygon2D" parent="BodyPivot"]
-position = Vector2(-8, 17)
-color = Color(0.02, 0.58, 0.76, 1)
-polygon = PackedVector2Array(-12, 5, 16, 9, 22, -2, -8, -8)
-
-[node name="Body" type="Polygon2D" parent="BodyPivot"]
-color = Color(0.06, 0.86, 1, 1)
-polygon = PackedVector2Array(34, 0, 8, -20, -24, -16, -32, 0, -24, 16, 8, 20)
-
-[node name="Visor" type="Polygon2D" parent="BodyPivot"]
-color = Color(0.88, 1, 1, 1)
-polygon = PackedVector2Array(12, -9, 34, -5, 34, 5, 12, 9)
-
-[node name="Tank" type="ColorRect" parent="BodyPivot"]
-offset_left = -30.0
-offset_top = -7.0
-offset_right = -12.0
-offset_bottom = 7.0
-color = Color(0.82, 0.94, 0.96, 1)
-
-[node name="NameLabel" type="Label" parent="."]
-offset_left = -28.0
-offset_top = 30.0
-offset_right = 45.0
-offset_bottom = 53.0
-text = "DIVER"
-
-[node name="Camera2D" type="Camera2D" parent="."]
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1466824116]
 position_smoothing_enabled = true
 position_smoothing_speed = 8.0

@@ -19,6 +19,7 @@ var world_rect: Rect2
 
 var player: Node
 var anchor: Node
+var chests: Array = []
 var world: Node2D
 var treasures_container: Node2D
 var monsters_container: Node2D
@@ -125,10 +126,13 @@ func _build_level() -> void:
 
 	player = result["player"]
 	anchor = result["anchor"]
+	chests = result["chests"]
 	monsters = result["monsters"]
 	world_rect = result["world_rect"]
 	treasures_remaining = result["treasures"].size()
 
+	for chest in chests:
+		chest.opened.connect(_on_chest_opened)
 	for treasure in result["treasures"]:
 		treasure.collected.connect(_on_treasure_collected)
 	for monster in monsters:
@@ -160,6 +164,16 @@ func _on_treasure_collected(treasure: Node) -> void:
 	carried_value += treasure.value
 	treasures_remaining = maxi(0, treasures_remaining - 1)
 	_hud.show_message("Collected %s treasure worth %d." % [treasure.rarity, treasure.value])
+	_update_status()
+
+
+func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
+	if run_state == RunState.EXTRACTED:
+		return
+
+	carried_counts[rarity] += 1
+	carried_value += value
+	_hud.show_message("Opened chest and found %s treasure worth %d." % [rarity, value])
 	_update_status()
 
 

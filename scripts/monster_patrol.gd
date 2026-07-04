@@ -3,7 +3,7 @@ class_name MonsterPatrol
 
 signal player_detected(monster: Node, reason: String)
 
-enum State { PATROL, CHASE }
+enum State {PATROL, CHASE}
 
 @export var patrol_speed: float = 125.0
 @export var chase_speed: float = 205.0
@@ -23,6 +23,7 @@ var _lost_sight_timer: float = 0.0
 
 @onready var vision_cone: Polygon2D = $VisionCone
 @onready var body_pivot: Node2D = $BodyPivot
+@onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
 @onready var catch_area: Area2D = $CatchArea
 
 
@@ -150,7 +151,8 @@ func _process_chase(delta: float, sees_player: bool) -> void:
 
 
 func _update_visuals() -> void:
-	body_pivot.rotation = facing.angle()
+	body_pivot.rotation = 0.0
+	body_sprite.flip_h = facing.x > 0.0
 	body_pivot.modulate = Color(1.0, 0.48, 0.28, 1.0) if state == State.CHASE else Color.WHITE
 
 	var half_width := tan(deg_to_rad(vision_angle_degrees * 0.5)) * vision_range
