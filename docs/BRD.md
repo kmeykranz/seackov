@@ -11,6 +11,8 @@ In scope:
 - One playable underwater run.
 - Treasure pickup and carried haul tracking.
 - Run backpack visibility with pickup and chest rewards entering the backpack immediately.
+- Persistent region progression with the rightmost region open first.
+- Main-menu debug save controls for progression testing.
 - Patrol monster detection and catch penalty.
 - Anchor extraction prompt and end-of-run banking.
 - Debug-accessible boat scene with dive hatch, mission console, purifier device, upload device, and warehouse.
@@ -18,12 +20,13 @@ In scope:
 
 Out of scope:
 - Full ship-to-run campaign flow.
-- Persistent save files.
+- Full save files beyond the small progression state.
 - Meta progression.
 - Procedural map expansion.
 
 ## Success Signals
 - The prototype communicates risk versus reward without tutorial text.
+- The prototype communicates gradual exploration by revealing new map regions after task progress.
 - The player can lose current-run carried treasure from the haul and backpack through detection.
 - The player can bank treasure only by extracting from the anchor.
 - Recovered items can be stored or uploaded after returning to the boat.

@@ -13,22 +13,29 @@ const MONSTER_LAYER: int = CollisionLayers.MONSTER
 const TREASURE_LAYER: int = CollisionLayers.TREASURE
 const EXIT_LAYER: int = CollisionLayers.EXIT
 const COVER_LAYER: int = CollisionLayers.COVER
+const DRAW_ORDER_SCALE := 0.5
 
 enum RunState {SEARCHING, ANCHOR_PROMPT, EXTRACTED}
 
-enum MapStage {WALL1 = 1, WALL2 = 2, WALL3 = 3, CLEAR = 4}
-
 var run_state: RunState = RunState.SEARCHING
-var map_stage: MapStage = MapStage.WALL1
 var world_rect: Rect2
 
 var player: Node
 var anchor: Node
+var anchors: Array = []
+var active_anchor: Node
 var chests: Array = []
 var world: Node2D
 var treasures_container: Node2D
 var monsters_container: Node2D
 var monsters: Array = []
+var spawn_anchor_id: String = ""
+var spawn_anchor_position: Vector2
+var unlocked_region_count: int = 1
+var regions: Array = []
+var locked_region_rects: Array = []
+var soft_boundary_x: float = -1.0
+var soft_boundary_margin: float = 520.0
 
 var player_on_anchor: bool = false
 var carried_value: int = 0
@@ -50,17 +57,15 @@ var warehouse_counts := {
 @onready var _pickup_container: Node2D = $World/Pickups
 @onready var _exit_container: Node2D = $World/Exits
 @onready var _actor_container: Node2D = $World/Actors
-@onready var _wall1: StaticBody2D = $World/wall1
-@onready var _wall2: StaticBody2D = $World/wall2
-@onready var _wall3: StaticBody2D = $World/wall3
+@onready var _fog_container: Node2D = $World/Fog
 @onready var _hud: CanvasLayer = $RunHud
 @onready var _storage_ui: CanvasLayer = $StorageTransferUi
+@onready var _minimap_ui: CanvasLayer = $MiniMapUi
 
 
 func _ready() -> void:
 	set_process_unhandled_input(true)
 	world = $World
-	_apply_map_stage(MapStage.CLEAR)
 	treasures_container = _pickup_container
 	monsters_container = _actor_container
 	_build_level()
@@ -84,18 +89,21 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.keycode == KEY_B:
 		_handle_key_input()
 		toggle_backpack_ui()
+		return
+
+	if event.keycode == KEY_M:
+		_handle_key_input()
+		toggle_minimap_ui()
 
 
 func _physics_process(_delta: float) -> void:
 	if anchor == null or player == null or run_state == RunState.EXTRACTED:
 		return
 
-	var overlaps_anchor := false
-	if anchor.has_method("contains_body"):
-		overlaps_anchor = anchor.contains_body(player)
-	if overlaps_anchor and not player_on_anchor:
-		_on_anchor_player_entered()
-	elif not overlaps_anchor and player_on_anchor:
+	var overlapping_anchor := _find_overlapping_anchor()
+	if overlapping_anchor != null and overlapping_anchor != active_anchor:
+		_on_anchor_player_entered(overlapping_anchor)
+	elif overlapping_anchor == null and player_on_anchor:
 		_on_anchor_player_exited()
 
 	_update_draw_order()
@@ -160,26 +168,47 @@ func is_backpack_ui_open() -> bool:
 	return _storage_ui.is_open()
 
 
-func set_map_stage(stage: int) -> void:
-	map_stage = clamp(stage, MapStage.WALL1, MapStage.CLEAR)
-	_apply_map_stage(map_stage)
+func is_minimap_open() -> bool:
+	return _minimap_ui.is_open()
 
 
-func advance_map_stage() -> void:
-	set_map_stage(map_stage + 1)
+func get_minimap_visible_region_count() -> int:
+	return _minimap_ui.get_visible_region_count()
+
+
+func get_unlocked_region_count() -> int:
+	return unlocked_region_count
+
+
+func get_locked_fog_count() -> int:
+	return _fog_container.get_child_count()
+
+
+func get_soft_boundary_x() -> float:
+	return soft_boundary_x
 
 
 func _build_level() -> void:
 	var builder := LevelBuilderScript.new()
 	add_child(builder)
-	var result := builder.build(_containers(), RunLayout.build())
+	var layout := RunLayout.build(_progress_unlocked_region_count())
+	var result := builder.build(_containers(), layout)
 
 	player = result["player"]
 	anchor = result["anchor"]
+	anchors = result["anchors"]
+	spawn_anchor_id = result["spawn_anchor_id"]
+	spawn_anchor_position = result["spawn_anchor_position"]
 	chests = result["chests"]
 	monsters = result["monsters"]
 	world_rect = result["world_rect"]
+	regions = result["regions"]
+	locked_region_rects = result["locked_region_rects"]
+	soft_boundary_x = float(result["soft_boundary_x"])
+	soft_boundary_margin = float(result["soft_boundary_margin"])
+	unlocked_region_count = int(result["unlocked_region_count"])
 	treasures_remaining = result["treasures"].size()
+	_refresh_region_access()
 
 	for chest in chests:
 		chest.opened.connect(_on_chest_opened)
@@ -187,8 +216,6 @@ func _build_level() -> void:
 		treasure.collected.connect(_on_treasure_collected)
 	for monster in monsters:
 		monster.player_detected.connect(_on_monster_detected_player)
-	anchor.player_entered.connect(_on_anchor_player_entered)
-	anchor.player_exited.connect(_on_anchor_player_exited)
 
 
 func _containers() -> Dictionary:
@@ -206,6 +233,10 @@ func _wire_ui() -> void:
 	_hud.continue_pressed.connect(choose_continue)
 	_storage_ui.set_backpack_only(true)
 	_storage_ui.storage_changed.connect(_on_storage_changed)
+	_refresh_minimap_ui()
+	var progress = _progress()
+	if progress != null and not progress.progress_changed.is_connected(_on_progress_changed):
+		progress.progress_changed.connect(_on_progress_changed)
 
 
 func _on_treasure_collected(treasure: Node) -> void:
@@ -232,8 +263,9 @@ func _on_monster_detected_player(_monster: Node, reason: String) -> void:
 	handle_player_discovered(reason)
 
 
-func _on_anchor_player_entered() -> void:
+func _on_anchor_player_entered(new_active_anchor: Node) -> void:
 	player_on_anchor = true
+	active_anchor = new_active_anchor
 	if run_state != RunState.EXTRACTED:
 		run_state = RunState.ANCHOR_PROMPT
 		_hud.show_anchor_prompt(carried_value)
@@ -243,24 +275,12 @@ func _on_anchor_player_entered() -> void:
 
 func _on_anchor_player_exited() -> void:
 	player_on_anchor = false
+	active_anchor = null
 	if run_state == RunState.ANCHOR_PROMPT:
 		run_state = RunState.SEARCHING
 		_hud.hide_anchor_prompt()
 		_hud.show_message("Left anchor range.")
 		_update_status()
-
-
-func _apply_map_stage(stage: int) -> void:
-	_set_wall_state(_wall1, stage == MapStage.WALL1)
-	_set_wall_state(_wall2, stage == MapStage.WALL2)
-	_set_wall_state(_wall3, stage == MapStage.WALL3)
-
-
-func _set_wall_state(wall: StaticBody2D, enabled: bool) -> void:
-	if wall == null:
-		return
-	wall.collision_layer = WALL_LAYER if enabled else 0
-	wall.visible = enabled
 
 
 func _set_gameplay_enabled(enabled: bool) -> void:
@@ -272,6 +292,11 @@ func _set_gameplay_enabled(enabled: bool) -> void:
 func toggle_backpack_ui() -> void:
 	_storage_ui.set_backpack_only(true)
 	_storage_ui.toggle_panel()
+
+
+func toggle_minimap_ui() -> void:
+	_refresh_minimap_ui()
+	_minimap_ui.toggle_panel()
 
 
 func _add_run_item_to_backpack(rarity: String, value: int) -> bool:
@@ -302,6 +327,90 @@ func _on_storage_changed(message: String) -> void:
 	_update_status()
 
 
+func _on_progress_changed() -> void:
+	unlocked_region_count = _progress_unlocked_region_count()
+	locked_region_rects = RunLayout.locked_region_rects_for_unlocked_count(unlocked_region_count)
+	soft_boundary_x = RunLayout.soft_boundary_x_for_unlocked_count(unlocked_region_count)
+	_refresh_region_access()
+	_refresh_minimap_ui()
+	_update_status()
+
+
+func _refresh_region_access() -> void:
+	_rebuild_locked_region_fog()
+	if player == null:
+		return
+	if soft_boundary_x >= 0.0 and player.has_method("configure_soft_left_boundary"):
+		player.configure_soft_left_boundary(soft_boundary_x, soft_boundary_margin)
+	elif player.has_method("clear_soft_left_boundary"):
+		player.clear_soft_left_boundary()
+	_refresh_minimap_ui()
+
+
+func _refresh_minimap_ui() -> void:
+	if _minimap_ui == null:
+		return
+	_minimap_ui.configure(world_rect, regions)
+	_minimap_ui.set_run_state(unlocked_region_count, anchors, spawn_anchor_id, player)
+	_minimap_ui.refresh()
+
+
+func _rebuild_locked_region_fog() -> void:
+	for child in _fog_container.get_children():
+		child.free()
+
+	for index in range(locked_region_rects.size()):
+		_add_locked_region_fog(index, locked_region_rects[index])
+
+
+func _add_locked_region_fog(index: int, rect: Rect2) -> void:
+	var fog := Polygon2D.new()
+	fog.name = "LockedFog_%02d" % index
+	fog.color = Color(0.0, 0.045, 0.075, 0.78)
+	fog.polygon = PackedVector2Array([
+		rect.position,
+		Vector2(rect.end.x, rect.position.y),
+		rect.end,
+		Vector2(rect.position.x, rect.end.y),
+	])
+	_fog_container.add_child(fog)
+
+	var boundary := Polygon2D.new()
+	boundary.name = "ElasticBoundary_%02d" % index
+	boundary.color = Color(0.82, 0.08, 0.12, 0.26)
+	var strip_width := 52.0
+	boundary.polygon = PackedVector2Array([
+		Vector2(rect.end.x - strip_width, rect.position.y),
+		Vector2(rect.end.x + strip_width, rect.position.y),
+		Vector2(rect.end.x + strip_width, rect.end.y),
+		Vector2(rect.end.x - strip_width, rect.end.y),
+	])
+	_fog_container.add_child(boundary)
+
+
+func _find_overlapping_anchor() -> Node:
+	for candidate in anchors:
+		if not _is_anchor_available(candidate):
+			continue
+		if candidate.has_method("contains_body") and candidate.contains_body(player):
+			return candidate
+	return null
+
+
+func _is_anchor_available(candidate: Node) -> bool:
+	if candidate == null:
+		return false
+	var region_id := int(candidate.get_meta("region_id", 1))
+	return region_id <= unlocked_region_count
+
+
+func _progress_unlocked_region_count() -> int:
+	var progress = _progress()
+	if progress == null:
+		return 1
+	return progress.get_unlocked_region_count()
+
+
 func _handle_key_input() -> void:
 	var viewport := get_viewport()
 	if viewport != null:
@@ -328,15 +437,23 @@ func _update_draw_order() -> void:
 		return
 	# Set player z_index based on its y
 	if player is CanvasItem:
-		player.z_index = int(player.position.y)
+		player.z_index = _draw_order_for_y(player.position.y)
 	# Update cover items (seaweed, coral, solid_cover)
 	for item in _cover_container.get_children():
 		if item is CanvasItem:
-			item.z_index = int(item.position.y)
+			item.z_index = _draw_order_for_y(item.position.y)
 	# Update pickups so treasures/chests interact visually too
 	for item in _pickup_container.get_children():
 		if item is CanvasItem:
-			item.z_index = int(item.position.y)
+			item.z_index = _draw_order_for_y(item.position.y)
+
+
+func _draw_order_for_y(y_position: float) -> int:
+	return clampi(int(roundf(y_position * DRAW_ORDER_SCALE)), -4096, 4096)
 
 func _music_manager():
 	return get_node_or_null("/root/MusicManager")
+
+
+func _progress():
+	return get_node_or_null("/root/ProgressState")

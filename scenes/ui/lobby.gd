@@ -1,6 +1,8 @@
 extends Control
 
 @onready var _title_sprite: Sprite2D = $Title
+@onready var _debug_panel: Panel = $DebugPanel
+@onready var _progress_label: Label = $DebugPanel/ProgressLabel
 
 # —— 沉重呼吸浮动参数 ——
 var _base_position: Vector2
@@ -29,13 +31,24 @@ func _ready() -> void:
 	_time_until_next_shake = randf_range(3.0, 8.0)
 
 	# —— 背景音乐（autoload 单例，场景切换不中断） ——
-	MusicManager.play_lobby_music()
+	var music_manager = _music_manager()
+	if music_manager != null:
+		music_manager.play_lobby_music()
 
 	# —— 按钮信号连接 ——
 	$start.pressed.connect(_on_start_pressed)
 	$boat_debug.pressed.connect(_on_boat_debug_pressed)
+	$save_debug.pressed.connect(_on_save_debug_pressed)
+	$DebugPanel/ResetSaveButton.pressed.connect(func() -> void: perform_debug_save_action("reset"))
+	$DebugPanel/AddLegendaryButton.pressed.connect(func() -> void: perform_debug_save_action("add_uploaded_legendary"))
+	$DebugPanel/UnlockNextButton.pressed.connect(func() -> void: perform_debug_save_action("unlock_next"))
+	$DebugPanel/LockStartButton.pressed.connect(func() -> void: perform_debug_save_action("lock_start"))
 	$about.pressed.connect(_on_about_pressed)
 	$quit.pressed.connect(_on_quit_pressed)
+	var progress = _progress()
+	if progress != null and not progress.progress_changed.is_connected(_update_progress_debug):
+		progress.progress_changed.connect(_update_progress_debug)
+	_update_progress_debug()
 
 
 func _on_start_pressed() -> void:
@@ -44,6 +57,36 @@ func _on_start_pressed() -> void:
 
 func _on_boat_debug_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/boat_scene.tscn")
+
+
+func _on_save_debug_pressed() -> void:
+	_debug_panel.visible = not _debug_panel.visible
+	_update_progress_debug()
+
+
+func perform_debug_save_action(action: String) -> bool:
+	var progress = _progress()
+	if progress == null:
+		return false
+
+	match action:
+		"reset":
+			progress.reset_save()
+		"add_uploaded_legendary":
+			progress.add_uploaded_legendary_progress(1)
+		"unlock_next":
+			progress.unlock_next_region()
+		"lock_start":
+			progress.lock_to_start_region()
+		_:
+			return false
+
+	_update_progress_debug()
+	return true
+
+
+func is_debug_panel_visible() -> bool:
+	return _debug_panel.visible
 
 
 func _on_about_pressed() -> void:
@@ -102,3 +145,19 @@ func _process(delta: float) -> void:
 
 	_title_sprite.rotation = 0.0
 	_title_sprite.position = _base_position + offset
+
+
+func _update_progress_debug() -> void:
+	var progress = _progress()
+	if progress == null:
+		_progress_label.text = "Progress save unavailable"
+		return
+	_progress_label.text = progress.get_summary_text()
+
+
+func _music_manager():
+	return get_node_or_null("/root/MusicManager")
+
+
+func _progress():
+	return get_node_or_null("/root/ProgressState")

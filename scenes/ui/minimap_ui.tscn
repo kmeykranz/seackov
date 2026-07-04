@@ -1,0 +1,52 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/minimap_ui.gd" id="1_minimap"]
+[ext_resource type="Script" path="res://scripts/ui/minimap_view.gd" id="2_view"]
+[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="3_font"]
+
+[node name="MiniMapUi" type="CanvasLayer"]
+layer = 18
+script = ExtResource("1_minimap")
+
+[node name="Panel" type="Panel" parent="."]
+visible = false
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -620.0
+offset_top = 84.0
+offset_right = -36.0
+offset_bottom = 520.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = 582.0
+offset_bottom = 438.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Header" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 24
+text = "小地图"
+
+[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(80, 36)
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 16
+text = "关闭"
+
+[node name="MapView" type="Control" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(564, 360)
+script = ExtResource("2_view")

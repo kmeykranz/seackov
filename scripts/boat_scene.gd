@@ -149,6 +149,9 @@ func _upload_backpack() -> void:
 	if result["total_count"] <= 0:
 		_show_message("上传装置：背包为空，没有可传输的样本或碎片。")
 	else:
+		var progress = _progress()
+		if progress != null:
+			progress.record_uploaded_counts(result["counts"])
 		_show_message("上传完成：%s，获得 %d 研究点。" % [
 			inventory.format_counts(result["counts"]),
 			result["value"],
@@ -206,3 +209,7 @@ func _handle_key_input() -> void:
 
 func _inventory():
 	return get_node("/root/PlayerInventory")
+
+
+func _progress():
+	return get_node_or_null("/root/ProgressState")

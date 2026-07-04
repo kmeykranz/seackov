@@ -2,6 +2,7 @@ extends SceneTree
 
 const RunSceneControllerScript := preload("res://scripts/game_controller.gd")
 const MonsterPatrolScript := preload("res://scripts/monster_patrol.gd")
+const RunLayout := preload("res://scripts/level/run_layout.gd")
 
 const ENTITY_SCENE_PATHS := [
 	"res://scenes/actors/player_diver.tscn",
@@ -13,12 +14,14 @@ const ENTITY_SCENE_PATHS := [
 	"res://scenes/props/chest_box.tscn",
 	"res://scenes/ui/run_hud.tscn",
 	"res://scenes/ui/storage_transfer_ui.tscn",
+	"res://scenes/ui/minimap_ui.tscn",
 	"res://scenes/boat_scene.tscn",
 ]
 
 var failures: Array[String] = []
 var game: Node
 var inventory
+var progress
 var transitioned_boat: Node
 
 
@@ -28,6 +31,12 @@ func _initialize() -> void:
 
 func _run() -> void:
 	inventory = root.get_node("/root/PlayerInventory")
+	progress = root.get_node("/root/ProgressState")
+	progress.use_save_path("user://acceptance_progress.json")
+	progress.reset_save()
+	inventory.reset_runtime_state()
+	await _test_upload_progression_unlocks()
+	progress.reset_save()
 	inventory.reset_runtime_state()
 	var scene := load("res://scenes/run_scene.tscn")
 	_assert(scene != null, "run scene loads")
@@ -42,20 +51,56 @@ func _run() -> void:
 
 	_test_initial_state()
 	_test_scene_split_and_visibility()
+	await _test_region_progression()
 	await _test_collect_and_clear_penalty()
 	await _test_monster_vision_guards()
 	await _test_anchor_choices_and_extraction()
 	await _test_inventory_and_boat_scene()
+	await _test_lobby_debug_controls()
 
 	_finish()
+
+
+func _test_upload_progression_unlocks() -> void:
+	var boat_scene := load("res://scenes/boat_scene.tscn")
+	_assert(boat_scene != null, "boat scene loads for upload progression")
+	if boat_scene == null:
+		return
+
+	var boat = boat_scene.instantiate()
+	root.add_child(boat)
+	await process_frame
+
+	progress.reset_save()
+	inventory.reset_runtime_state()
+	var expected_regions := [2, 3, 4]
+	for expected_region in expected_regions:
+		inventory.add_to_storage("backpack", "legendary", 2)
+		var upload_handled: bool = boat.perform_interaction("upload")
+		_assert(upload_handled, "boat upload handles legendary progression batch")
+		_assert(inventory.get_backpack_total_count() == 0, "upload progression batch clears backpack")
+		_assert(progress.get_unlocked_region_count() == expected_region, "uploaded legendary progression unlocks region %d" % expected_region)
+
+	_assert(progress.get_uploaded_legendary_count() == 6, "uploaded legendary progress is persisted through all region thresholds")
+
+	boat.queue_free()
+	await process_frame
 
 
 func _test_initial_state() -> void:
 	_assert(game.run_state == RunSceneControllerScript.RunState.SEARCHING, "run starts in searching state")
 	_assert(game.player != null, "player exists")
 	_assert(game.anchor != null, "anchor exists")
-	_assert(game.treasures_remaining == 9, "treasure spawn count is tracked")
-	_assert(game.monsters.size() == 2, "patrol monsters exist")
+	_assert(game.treasures_remaining == game.treasures_container.get_child_count(), "treasure spawn count is tracked")
+	_assert(game.monsters.size() >= 2, "patrol monsters exist")
+	_assert(game.get_unlocked_region_count() == 1, "fresh progress starts with one unlocked region")
+	_assert(game.spawn_anchor_id != "", "run chooses a spawn anchor")
+	_assert(game.player.global_position.distance_to(game.spawn_anchor_position) < 1.0, "player spawns at the selected anchor")
+	for anchor in game.anchors:
+		_assert(String(anchor.get_meta("anchor_id", "")) != game.spawn_anchor_id, "spawn anchor is not instanced as an exit")
+	_assert(game.anchor.get_meta("region_id", 1) <= game.get_unlocked_region_count(), "default extraction anchor is in an unlocked region")
+	_assert(is_equal_approx(game.get_soft_boundary_x(), RunLayout.soft_boundary_x_for_unlocked_count(1)), "initial soft boundary is at the first region gate")
+	_assert(game.get_locked_fog_count() > 0, "locked regions start covered by fog")
 
 
 func _test_scene_split_and_visibility() -> void:
@@ -66,8 +111,10 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.has_node("World/Cover/NorthReef"), "solid cover scene is instanced")
 	_assert(game.has_node("World/Cover/WestGrass"), "seaweed scene is instanced")
 	_assert(game.has_node("World/Exits/AnchorExit"), "anchor scene is instanced")
+	_assert(game.has_node("World/Fog"), "region fog container exists")
 	_assert(game.has_node("RunHud"), "HUD scene is instanced")
 	_assert(game.has_node("StorageTransferUi"), "run backpack UI is instanced")
+	_assert(game.has_node("MiniMapUi"), "run minimap UI is instanced")
 	_assert(game.player.has_node("BodyPivot"), "player placeholder art exists")
 	_assert(game.player.position.y >= 250.0, "player starts below the HUD area")
 
@@ -86,6 +133,61 @@ func _test_scene_split_and_visibility() -> void:
 	game._unhandled_input(b_key)
 	_assert(not game.is_backpack_ui_open(), "B closes run backpack UI")
 
+	var m_key := InputEventKey.new()
+	m_key.keycode = KEY_M
+	m_key.pressed = true
+	_assert(not game.is_minimap_open(), "run minimap UI starts closed")
+	game._unhandled_input(m_key)
+	_assert(game.is_minimap_open(), "M opens run minimap UI")
+	_assert(game.get_minimap_visible_region_count() == 1, "fresh minimap shows only the first unlocked region")
+	game._unhandled_input(m_key)
+	_assert(not game.is_minimap_open(), "M closes run minimap UI")
+
+
+func _test_region_progression() -> void:
+	var boundary_x: float = game.get_soft_boundary_x()
+	var rebound_distance: float = game.player.get_soft_left_boundary_rebound_distance()
+	var released_in_margin := Vector2(boundary_x + rebound_distance * 0.35, 3000.0)
+	game.player.global_position = released_in_margin
+	for index in range(90):
+		await physics_frame
+	_assert(game.player.global_position.x > released_in_margin.x, "soft boundary elastically pushes the player outward after release")
+	_assert(game.player.global_position.x <= boundary_x + rebound_distance + 20.0, "soft boundary release rebound stays near two body lengths")
+
+	var pushed_from := Vector2(boundary_x - 180.0, 3000.0)
+	game.player.global_position = pushed_from
+	await physics_frame
+	await physics_frame
+	_assert(game.player.global_position.x > pushed_from.x, "soft boundary pushes the player back from locked space")
+	_assert(game.player.is_soft_left_boundary_enabled(), "player has an active soft boundary")
+
+	game.player.global_position = game.spawn_anchor_position
+	var legendary_treasures := []
+	for treasure in game.treasures_container.get_children():
+		if String(treasure.rarity) == "legendary" and int(treasure.get_meta("region_id", 1)) == 1:
+			legendary_treasures.append(treasure)
+	_assert(legendary_treasures.size() >= 2, "first region has two legendary unlock items")
+
+	var previous_remaining: int = game.treasures_remaining
+	legendary_treasures[0].collect(game.player)
+	await process_frame
+	legendary_treasures[1].collect(game.player)
+	await process_frame
+
+	_assert(progress.get_uploaded_legendary_count() == 0, "legendary collection alone does not update uploaded progression")
+	_assert(progress.get_unlocked_region_count() == 1, "legendary collection alone does not unlock the second region")
+	_assert(game.get_unlocked_region_count() == 1, "run scene remains locked until upload progression changes")
+	_assert(game.treasures_remaining == previous_remaining - 2, "unlock treasure collection still decrements run treasure count")
+
+	game.handle_player_discovered("unlock cleanup")
+	_assert(game.carried_value == 0, "unlock test cleanup clears carried value")
+	progress.add_uploaded_legendary_progress(2)
+	await process_frame
+	_assert(progress.get_unlocked_region_count() == 2, "two uploaded legendary items unlock the second region")
+	_assert(game.get_unlocked_region_count() == 2, "run scene reacts to uploaded progression unlock")
+	_assert(is_equal_approx(game.get_soft_boundary_x(), RunLayout.soft_boundary_x_for_unlocked_count(2)), "soft boundary moves to the second region gate")
+	_assert(game.get_minimap_visible_region_count() == 2, "minimap expands when the second region unlocks")
+
 
 func _test_collect_and_clear_penalty() -> void:
 	var treasure = game.treasures_container.get_child(0)
@@ -93,12 +195,13 @@ func _test_collect_and_clear_penalty() -> void:
 	var rarity: String = treasure.rarity
 	var backpack_before: int = inventory.get_backpack_total_count()
 	var rarity_before: int = inventory.get_backpack_count(rarity)
+	var previous_remaining: int = game.treasures_remaining
 	treasure.collect(game.player)
 	await process_frame
 
 	_assert(game.carried_value == value, "collecting treasure increases carried value")
 	_assert(inventory.get_backpack_count(rarity) == rarity_before + 1, "collecting treasure stores item in backpack immediately")
-	_assert(game.treasures_remaining == 8, "collecting treasure decreases remaining count")
+	_assert(game.treasures_remaining == previous_remaining - 1, "collecting treasure decreases remaining count")
 
 	var run_storage_ui = game.get_node("StorageTransferUi")
 	var b_key := InputEventKey.new()
@@ -267,9 +370,9 @@ func _test_monster_vision_guards() -> void:
 	var monster = game.monsters[0]
 	monster.set_active(false)
 	monster.state = MonsterPatrolScript.State.PATROL
-	monster.global_position = Vector2(300, 180)
+	monster.global_position = Vector2(8300, 1800)
 	monster.facing = Vector2.RIGHT
-	game.player.global_position = Vector2(420, 180)
+	game.player.global_position = Vector2(8420, 1800)
 	game.player.cover_depth = 0
 	await physics_frame
 
@@ -279,13 +382,13 @@ func _test_monster_vision_guards() -> void:
 	_assert(not monster.can_see_player(game.player), "hiding cover prevents sight")
 	game.player.exit_cover()
 
-	game.player.global_position = Vector2(180, 180)
+	game.player.global_position = Vector2(8180, 1800)
 	_assert(not monster.can_see_player(game.player), "monster does not see behind itself")
 
-	game.player.global_position = Vector2(450, 180)
+	game.player.global_position = Vector2(8450, 1800)
 	var blocker := StaticBody2D.new()
 	blocker.name = "VisionBlocker"
-	blocker.global_position = Vector2(370, 180)
+	blocker.global_position = Vector2(8370, 1800)
 	blocker.collision_layer = RunSceneControllerScript.WALL_LAYER
 	blocker.collision_mask = 0
 	var collision := CollisionShape2D.new()
@@ -299,6 +402,35 @@ func _test_monster_vision_guards() -> void:
 
 	_assert(not monster.can_see_player(game.player), "solid cover blocks monster sight ray")
 	blocker.queue_free()
+
+
+func _test_lobby_debug_controls() -> void:
+	var lobby_scene := load("res://scenes/ui/lobby.tscn")
+	_assert(lobby_scene != null, "lobby scene loads")
+	if lobby_scene == null:
+		return
+
+	var lobby = lobby_scene.instantiate()
+	root.add_child(lobby)
+	await process_frame
+
+	_assert(lobby.has_node("save_debug"), "lobby has save debug button")
+	_assert(lobby.has_node("DebugPanel"), "lobby has save debug panel")
+	lobby.get_node("save_debug").pressed.emit()
+	_assert(lobby.is_debug_panel_visible(), "save debug button opens the debug panel")
+
+	_assert(lobby.perform_debug_save_action("reset"), "debug reset action is handled")
+	_assert(progress.get_unlocked_region_count() == 1, "debug reset locks progress to the first region")
+	_assert(lobby.perform_debug_save_action("add_uploaded_legendary"), "debug add uploaded legendary action is handled")
+	_assert(progress.get_uploaded_legendary_count() == 1, "debug add uploaded legendary updates save progress")
+	_assert(lobby.perform_debug_save_action("unlock_next"), "debug unlock next action is handled")
+	_assert(progress.get_unlocked_region_count() == 2, "debug unlock next opens the second region")
+	_assert(lobby.perform_debug_save_action("lock_start"), "debug lock start action is handled")
+	_assert(progress.get_unlocked_region_count() == 1, "debug lock start closes back to the first region")
+	_assert(progress.get_uploaded_legendary_count() < 2, "debug lock start remains locked after reload rules")
+
+	lobby.queue_free()
+	await process_frame
 
 
 func _assert(condition: bool, label: String) -> void:

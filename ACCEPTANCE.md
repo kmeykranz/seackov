@@ -1,15 +1,22 @@
 # Acceptance
 
 ## Current Goal
-Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a debug-accessible boat scene and a minimal runtime backpack loop.
+Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a persistent region progression loop, a debug-accessible boat scene, and a minimal runtime backpack loop.
 
 ## Acceptance Criteria
 - The project launches into the main menu, and `Dive In` enters one underwater run scene.
 - The main menu includes a temporary debug button that enters the boat scene.
+- The main menu includes a debug save menu that can reset progression, add uploaded legendary progress, unlock the next region, and lock progression back to the starting region.
 - Codex has both `godot-ai` and `godot-mcp` MCP servers configured for the local Godot editor bridges.
 - The run scene contains visible player, treasure, cover, monster vision, HUD placeholder art, and a backpack-only inventory UI.
 - Player, monster, treasure, chest, anchor, solid cover, seaweed cover, and HUD are separate scenes instantiated into the run scene.
 - The player can move around a bounded 2D sea-floor map with visible rocks, wreckage, and seaweed cover.
+- A fresh save starts with only the rightmost map region unlocked.
+- The run starts at a random authored anchor from unlocked regions.
+- The selected spawn anchor is not visible and cannot be used for extraction in that run.
+- Locked regions are covered by fog and blocked by an elastic soft boundary that slows the player and rebounds them to roughly two body lengths outside the active boundary instead of using a hard wall.
+- Pressing `M` in the run scene opens or closes a floating minimap that shows the full unlocked regions.
+- Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks the next region until all authored regions are open.
 - Pressing `B` in the run scene opens or closes a grid backpack UI that does not show warehouse slots.
 - Treasure pickups have common, rare, and legendary rarities, add their value to the carried haul, enter the backpack immediately, and have no capacity limit.
 - Opening a chest grants one random item rarity and places that item into the backpack immediately.
@@ -29,7 +36,7 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload device can move all backpack items into uploaded records and increase research points.
 - The warehouse UI can receive item stacks from backpack click operations and can send them back.
-- The implementation has a headless acceptance test covering scene loading, treasure collection, run backpack UI, random chest rewards, catch penalty, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, and scene split structure.
+- The implementation has a headless acceptance test covering scene loading, treasure collection, region progression, minimap UI, run backpack UI, random chest rewards, catch penalty, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, debug save controls, and scene split structure.
 
 ## Completion Measurement
 Completion is measured by the criteria above. This prototype is complete when all criteria pass in local Godot 4.7 validation.

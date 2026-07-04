@@ -4,15 +4,7 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/run_hud.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://bli6s6tuqq18f" path="res://assets/map.png" id="2_nm65f"]
 [ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="3_storage"]
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_xmxk4"]
-size = Vector2(28.457539, 555.66724)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_1l68p"]
-size = Vector2(23.450836, 607.7737)
-
-[sub_resource type="RectangleShape2D" id="RectangleShape2D_0w2ic"]
-size = Vector2(11.357033, 425.6417)
+[ext_resource type="PackedScene" path="res://scenes/ui/minimap_ui.tscn" id="4_minimap"]
 
 [node name="RunScene" type="Node2D" unique_id=1691030222]
 script = ExtResource("1")
@@ -33,27 +25,10 @@ offset = Vector2(4015.0142, 2328.0454)
 
 [node name="Actors" type="Node2D" parent="World" unique_id=359685943]
 
-[node name="wall3" type="StaticBody2D" parent="World" unique_id=125998522]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/wall3" unique_id=66209100]
-position = Vector2(1881.9999, 3022.0002)
-scale = Vector2(11.54, 11.54)
-shape = SubResource("RectangleShape2D_xmxk4")
-
-[node name="wall2" type="StaticBody2D" parent="World" unique_id=963999944]
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/wall2" unique_id=760604368]
-position = Vector2(4284, 3060.0002)
-scale = Vector2(10.78, 10.78)
-shape = SubResource("RectangleShape2D_1l68p")
-
-[node name="wall1" type="StaticBody2D" parent="World" unique_id=345447585]
-position = Vector2(7786.992, 3028)
-scale = Vector2(14.96, 14.96)
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="World/wall1" unique_id=3404351]
-shape = SubResource("RectangleShape2D_0w2ic")
+[node name="Fog" type="Node2D" parent="World"]
 
 [node name="RunHud" parent="." unique_id=1333828393 instance=ExtResource("2")]
 
 [node name="StorageTransferUi" parent="." instance=ExtResource("3_storage")]
+
+[node name="MiniMapUi" parent="." instance=ExtResource("4_minimap")]

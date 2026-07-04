@@ -1,7 +1,6 @@
-[gd_scene format=3 uid="uid://3s8ruhw2mmdr"]
+[gd_scene load_steps=3 format=3 uid="uid://3s8ruhw2mmdr"]
 
 [ext_resource type="Script" uid="uid://do54m0hnfpks8" path="res://scripts/props/seaweed_cover.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://duhp37fmnua8d" path="res://assets/grass1.png" id="2_635jn"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_seaweed"]
 size = Vector2(82, 101)
@@ -17,4 +16,3 @@ shape = SubResource("RectangleShape2D_seaweed")
 z_index = 1
 position = Vector2(-13, -135)
 scale = Vector2(0.64375, 0.64375)
-texture = ExtResource("2_635jn")

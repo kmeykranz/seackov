@@ -7,8 +7,15 @@ Implement one underwater run where the player collects recovered objects, avoids
 - The game starts in the main menu.
 - The main menu can start the run scene.
 - The main menu includes a temporary debug entry for the boat scene.
+- The main menu includes debug save controls for resetting progression, adding uploaded legendary progress, unlocking the next region, and locking back to the start.
 - The player moves in 2D using keyboard input.
 - The map is bounded and contains solid cover plus seaweed hiding zones.
+- A fresh save unlocks only the rightmost map region.
+- Each run starts at a random anchor from unlocked regions.
+- The selected spawn anchor is hidden and cannot be used for extraction in that run.
+- Locked regions are hidden by fog and guarded by an elastic soft boundary that slows the player and rebounds them to roughly two body lengths outside the active boundary.
+- Pressing `M` in the run scene opens or closes a floating minimap showing full unlocked regions.
+- Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks one more region until the authored regions are open.
 - Treasures are visible pickups with common, rare, and legendary rarities.
 - Pressing `B` in the run scene opens or closes a backpack-only grid UI.
 - Collecting treasure increases the carried haul and places the item into the backpack immediately.
@@ -33,12 +40,12 @@ Implement one underwater run where the player collects recovered objects, avoids
 
 ## Non-Functional Requirements
 - Use Godot 4.7-compatible GDScript and built-in 2D nodes.
-- Keep run logic local to the run scene and keep cross-scene item state in a small inventory autoload.
+- Keep run logic local to the run scene and keep cross-scene item/progression state in small autoloads.
 - Keep future exploration expansion data-driven enough to adjust bounds, obstacles, and spawns without changing actor behavior.
 
 ## Exclusions
 - No full ship-to-run campaign routing.
-- No save/load persistence.
+- No full save-game system beyond the small progression save.
 - No combat or player attack.
 - No new inventory capacity rules beyond the existing fixed prototype grid.
 - No equipment exchange or upgrade shop yet.
