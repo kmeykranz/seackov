@@ -5,13 +5,13 @@ The run scene is a `Node2D` controlled by `RunSceneController`. It contains name
 
 The boat scene is a `Node2D` controlled by `BoatScene`. It contains a player diver and five interaction areas: dive hatch, mission console, purifier device, upload device, and warehouse. Interactions use the same `F` key prompt pattern as chests and the hatch.
 
-The storage transfer UI is a separate scene instanced into the boat. It shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection.
+The storage transfer UI is a separate scene instanced into the boat. It shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, shows the held stack next to the mouse cursor, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection.
 
 ## Module Responsibilities
 - `RunSceneController`: run state, score/haul accounting, extraction choices, and actor signal wiring.
 - `PlayerInventory`: runtime cross-scene backpack, warehouse, uploaded item records, and research point accounting.
 - `BoatScene`: boat interaction prompts, boat status HUD, and calls into `PlayerInventory`.
-- `StorageTransferUi`: backpack/warehouse panel visibility, slot refresh, hand-held stack state, and click operation routing.
+- `StorageTransferUi`: backpack/warehouse panel visibility, slot refresh, hand-held stack state, cursor-following held item preview, and click operation routing.
 - `StorageSlot`: one clickable storage grid cell with an item icon and stack count.
 - `RunLayout`: explicit map bounds, spawn positions, cover specs, treasure specs, and monster patrol routes.
 - `RunLevelBuilder`: scene instantiation from layout data into run scene containers.
@@ -68,6 +68,7 @@ Guards:
 - Clicks on empty slots are no-ops unless the hand is holding a stack.
 - Right-click placement only works on empty slots or matching non-full stacks.
 - Shift-click is ignored while the hand is holding a stack.
+- Different item types never merge into one slot.
 - Upload is a no-op when the backpack is empty.
 - Detection before extraction does not touch backpack, warehouse, or uploaded records.
 
@@ -75,6 +76,7 @@ Side Effects:
 - Boat status text refreshes after any interaction.
 - Uploading uses existing rarity values as research points.
 - Storage UI refreshes after any click operation.
+- Held-stack preview follows the mouse cursor while the hand is not empty.
 
 ## Placeholder Art
 Placeholder art is intentionally high-contrast and scene-local: cyan diver, red patrol, translucent red vision cone, yellow/blue/magenta treasure, green seaweed, teal reef, brown wreckage, and panel-backed HUD.

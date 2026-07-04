@@ -16,11 +16,12 @@
 13. Press `B` and verify the backpack/warehouse grid storage UI opens; press `B` again and verify it closes.
 14. Use the warehouse interaction and verify the same storage UI opens.
 15. Verify occupied slots show item icons and stack counts.
-16. Right-click a stack and verify half is picked up into the hand.
+16. Right-click a stack and verify half is picked up into the hand and shown next to the mouse cursor.
 17. Right-click an empty compatible slot and verify one item is placed.
 18. Left-click a compatible stack and verify all held items are placed.
 19. Shift-click a stack and verify it quick-transfers between backpack and warehouse.
-20. After another extraction, use the upload interaction and verify backpack items move into uploaded records with research points.
+20. Try placing a held item onto a different item type and verify the items swap instead of merging into one slot.
+21. After another extraction, use the upload interaction and verify backpack items move into uploaded records with research points.
 
 ## Automated Acceptance Test
 Command:

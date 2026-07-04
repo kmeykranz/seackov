@@ -12,7 +12,7 @@ The boat scene has runtime backpack and warehouse counts, but storage movement n
 States:
 - `Closed`: storage UI is hidden; gameplay input continues.
 - `OpenEmptyHand`: backpack and warehouse grids are visible and no stack is held.
-- `OpenHoldingStack`: a temporary hand stack is shown in the UI.
+- `OpenHoldingStack`: a temporary hand stack is shown next to the mouse cursor.
 
 Events:
 - `press_b`: toggles between `Closed` and `OpenEmptyHand`, unless a held stack cannot be returned.
@@ -28,11 +28,13 @@ Guards:
 - Empty slots cannot be taken from.
 - Right-click placement only accepts empty slots or matching non-full stacks.
 - Shift-click is ignored while holding a stack.
+- Different item types never merge into one slot.
 - Closing the panel first tries to return the held stack to its source storage, then the other storage; if both are full, the panel stays open.
 
 Side Effects:
 - Slot clicks update `PlayerInventory`.
 - The hand label and all slot icons refresh after each operation.
+- The held stack icon follows the mouse cursor while the hand is not empty.
 - The boat HUD summary refreshes after storage changes.
 
 Failure Paths
@@ -48,8 +50,10 @@ Remove `scenes/ui/storage_transfer_ui.tscn`, `scripts/ui/storage_transfer_ui.gd`
 - Pressing `B` again closes the grid storage UI when no stack is held.
 - Interacting with the warehouse opens the same grid storage UI.
 - Occupied slots show an item icon and stack count.
+- A picked-up stack appears as an item icon and count next to the mouse cursor.
 - Left-click on an occupied slot with an empty hand picks up the whole stack.
 - Left-click while holding a stack places or swaps the whole stack.
 - Right-click on an occupied slot with an empty hand picks up half the stack, rounded up.
 - Right-click while holding a stack places exactly one item into an empty or matching slot.
 - Shift-click with an empty hand quick-transfers the clicked stack between backpack and warehouse.
+- Different item types swap on left-click instead of merging into one slot.

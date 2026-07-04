@@ -175,6 +175,7 @@ func place_stack_in_slot(storage_id: String, slot_index: int, incoming_stack: Di
 		incoming["count"] = int(incoming["count"]) - placed
 		return _empty_stack() if int(incoming["count"]) <= 0 else incoming
 
+	# Different item types cannot merge into one grid cell; left-click swaps stacks.
 	slots[slot_index] = incoming
 	return slot
 

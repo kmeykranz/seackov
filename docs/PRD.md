@@ -22,9 +22,11 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Pressing `B` in the boat scene opens or closes the backpack and warehouse grid storage UI.
 - Interacting with the warehouse opens the same storage UI.
 - Storage slots show item icons and stack counts.
+- Picking up a stack shows the held item icon and count next to the mouse cursor.
 - Left-click takes or places a whole stack.
 - Right-click takes half a stack when the hand is empty, or places one item when holding a stack.
 - Shift-click quickly transfers a stack between backpack and warehouse.
+- Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload interaction moves all backpack items into uploaded records and increases research points.
 
 ## Non-Functional Requirements

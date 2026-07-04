@@ -171,6 +171,7 @@ func _test_inventory_and_boat_scene() -> void:
 
 	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_RIGHT)
 	_assert(storage_ui.get_cursor_stack()["count"] == 2, "right click takes half a stack")
+	_assert(storage_ui.is_cursor_preview_visible(), "held item preview appears at the cursor")
 	_assert(inventory.get_backpack_count("common") == 2, "right click leaves the other half in the slot")
 
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_RIGHT)
@@ -179,6 +180,7 @@ func _test_inventory_and_boat_scene() -> void:
 
 	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
 	_assert(storage_ui.get_cursor_stack()["count"] == 0, "left click places all held items")
+	_assert(not storage_ui.is_cursor_preview_visible(), "held item preview hides after placing all items")
 	_assert(inventory.get_backpack_count("common") == 3, "left click merges held stack into matching slot")
 
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT)
@@ -193,6 +195,18 @@ func _test_inventory_and_boat_scene() -> void:
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT, true)
 	_assert(inventory.get_backpack_count("common") == 4, "shift click can move warehouse stack back")
 	_assert(inventory.get_warehouse_total_count() == 0, "shift click clears warehouse source stack")
+
+	inventory.add_to_storage("warehouse", "rare", 1)
+	storage_ui.refresh()
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
+	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT)
+	_assert(inventory.get_warehouse_count("common") == 4, "left click swaps different item types instead of merging")
+	_assert(inventory.get_warehouse_count("rare") == 0, "different item types do not share one slot")
+	_assert(storage_ui.get_cursor_stack()["rarity"] == "rare", "swapping leaves the replaced item on the cursor")
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT, true)
+	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT, true)
+	_assert(inventory.get_backpack_count("common") == 4, "common stack returns to backpack after swap guard test")
 
 	inventory.receive_extracted_counts({"common": 1, "rare": 0, "legendary": 1})
 	var upload_handled: bool = boat.perform_interaction("upload")

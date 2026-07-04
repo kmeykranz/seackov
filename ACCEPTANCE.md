@@ -20,9 +20,11 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Pressing `B` in the boat scene opens or closes a grid storage UI showing backpack and warehouse slots.
 - Interacting with the warehouse opens the storage UI.
 - Storage slots show item icons and stack counts.
+- Picking up a stack shows the held item icon and count next to the mouse cursor.
 - Left-click takes or places a whole stack.
 - Right-click takes half a stack when the hand is empty, or places one item when holding a stack.
 - Shift-click quickly transfers a stack between backpack and warehouse.
+- Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload device can move all backpack items into uploaded records and increase research points.
 - The warehouse UI can receive item stacks from backpack click operations and can send them back.
 - The implementation has a headless acceptance test covering scene loading, treasure collection, catch penalty, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, and scene split structure.
