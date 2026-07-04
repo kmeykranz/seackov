@@ -6,6 +6,7 @@ class_name PlayerDiver
 var control_enabled: bool = true
 var facing: Vector2 = Vector2.RIGHT
 var cover_depth: int = 0
+var _last_horizontal_facing_right: bool = true
 
 @onready var body_pivot: Node2D = $BodyPivot
 @onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
@@ -19,7 +20,7 @@ func _ready() -> void:
 	_update_hidden_visual()
 
 
-func configure_camera(bounds: Rect2) -> void:
+func configure_camera(_bounds: Rect2) -> void:
 	#camera.limit_left = int(bounds.position.x)
 	#camera.limit_top = int(bounds.position.y)
 	#camera.limit_right = int(bounds.end.x)
@@ -39,6 +40,8 @@ func _physics_process(_delta: float) -> void:
 	velocity = input_vector * speed
 	if input_vector != Vector2.ZERO:
 		facing = input_vector.normalized()
+		if absf(input_vector.x) > 0.01:
+			_last_horizontal_facing_right = input_vector.x > 0.0
 	_update_movement_visuals(input_vector)
 
 	move_and_slide()
@@ -84,9 +87,15 @@ func _update_hidden_visual() -> void:
 
 func _update_movement_visuals(input_vector: Vector2) -> void:
 	body_pivot.rotation = 0.0
-	body_sprite.flip_h = facing.x > 0.0
+	body_sprite.flip_h = _last_horizontal_facing_right
+
+	var desired_animation := &"default"
+	body_sprite.flip_v = false
 	if input_vector != Vector2.ZERO:
-		if body_sprite.animation != &"walk":
-			body_sprite.play("walk")
-	elif body_sprite.animation != &"default":
-		body_sprite.play("default")
+		if absf(input_vector.y) > absf(input_vector.x):
+			desired_animation = &"down" if input_vector.y > 0.0 else &"down"
+		else:
+			desired_animation = &"walk"
+
+	if body_sprite.animation != desired_animation:
+		body_sprite.play(desired_animation)
