@@ -25,10 +25,10 @@ offset = Vector2(4015.0142, 2328.0454)
 
 [node name="Actors" type="Node2D" parent="World" unique_id=359685943]
 
-[node name="Fog" type="Node2D" parent="World"]
+[node name="Fog" type="Node2D" parent="World" unique_id=1685908542]
 
 [node name="RunHud" parent="." unique_id=1333828393 instance=ExtResource("2")]
 
-[node name="StorageTransferUi" parent="." instance=ExtResource("3_storage")]
+[node name="StorageTransferUi" parent="." unique_id=1138025695 instance=ExtResource("3_storage")]
 
-[node name="MiniMapUi" parent="." instance=ExtResource("4_minimap")]
+[node name="MiniMapUi" parent="." unique_id=1572166710 instance=ExtResource("4_minimap")]

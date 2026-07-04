@@ -5,4 +5,7 @@ extends StaticBody2D
 
 
 func configure(size: Vector2, kind: String, display_name: String) -> void:
-		return
+	var shape := RectangleShape2D.new()
+	shape.size = size
+	collision.shape = shape
+	return
