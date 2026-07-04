@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://2p0gvpuduagn" path="res://scenes/ui/fail.gd" id="1_61vlv"]
 [ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="1_x8iaa"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="2_q2wf2"]
-[ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="3_q2wf2"]
 
 [node name="Fail" type="Control" unique_id=956027760]
 layout_mode = 3
@@ -55,6 +54,6 @@ offset_left = 848.0
 offset_top = 728.0
 offset_right = 1090.0
 offset_bottom = 794.0
-theme_override_fonts/font = ExtResource("3_q2wf2")
+theme_override_fonts/font = ExtResource("2_q2wf2")
 theme_override_font_sizes/font_size = 50
-text = "BACK"
+text = "返回"
