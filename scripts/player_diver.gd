@@ -20,11 +20,11 @@ func _ready() -> void:
 	_update_hidden_visual()
 
 
-func configure_camera(_bounds: Rect2) -> void:
-	#camera.limit_left = int(bounds.position.x)
-	#camera.limit_top = int(bounds.position.y)
-	#camera.limit_right = int(bounds.end.x)
-	#camera.limit_bottom = int(bounds.end.y)
+func configure_camera(bounds: Rect2) -> void:
+	camera.limit_left = int(bounds.position.x)
+	camera.limit_top = int(bounds.position.y)
+	camera.limit_right = int(bounds.end.x)
+	camera.limit_bottom = int(bounds.end.y)
 	camera.zoom = Vector2(1.4, 1.4)
 	camera.make_current()
 
