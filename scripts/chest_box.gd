@@ -57,6 +57,10 @@ func _open() -> void:
 	collision_mask = 0
 	_player_in_range = false
 
+	var music_mgr: Node = get_node_or_null("/root/MusicManager")
+	if music_mgr != null:
+		music_mgr.play_chest_open()
+
 	var reward := _pick_reward()
 	_base.modulate = Color(0.82, 0.72, 0.36, 1.0)
 	_lid.modulate = Color(0.68, 0.58, 0.22, 1.0)
