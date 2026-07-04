@@ -1,0 +1,55 @@
+[gd_scene format=3 uid="uid://crnwvcp85k63c"]
+
+[ext_resource type="Script" uid="uid://dbni0blye3o1w" path="res://scenes/ui/lobby.gd" id="1_5t5el"]
+[ext_resource type="Texture2D" uid="uid://c7f3wb55tkifk" path="res://assets/ui-init.png" id="1_efll3"]
+[ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_5t5el"]
+[ext_resource type="FontFile" uid="uid://jbs3nvuhvm5x" path="res://assets/star-rust.regular.otf" id="4_2rbxb"]
+
+[node name="lobby" type="Control" unique_id=857127710]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_5t5el")
+
+[node name="background" type="Sprite2D" parent="." unique_id=1798412965]
+modulate = Color(1, 1, 1, 0.85490197)
+position = Vector2(642, 357.5)
+scale = Vector2(1.31893, 1.0610119)
+texture = ExtResource("1_efll3")
+
+[node name="Title" type="Sprite2D" parent="." unique_id=1230714027]
+position = Vector2(643, 230)
+texture = ExtResource("2_5t5el")
+
+[node name="start" type="Button" parent="." unique_id=1335842173]
+layout_mode = 0
+offset_left = 488.0
+offset_top = 365.0
+offset_right = 791.0
+offset_bottom = 409.0
+theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_font_sizes/font_size = 34
+text = "Dive In"
+
+[node name="about" type="Button" parent="." unique_id=1090443531]
+layout_mode = 0
+offset_left = 529.0
+offset_top = 464.0
+offset_right = 751.0
+offset_bottom = 515.0
+theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_font_sizes/font_size = 30
+text = "About"
+
+[node name="quit" type="Button" parent="." unique_id=1818672971]
+layout_mode = 0
+offset_left = 577.0
+offset_top = 561.0
+offset_right = 699.0
+offset_bottom = 605.0
+theme_override_fonts/font = ExtResource("4_2rbxb")
+theme_override_font_sizes/font_size = 30
+text = "quit"
