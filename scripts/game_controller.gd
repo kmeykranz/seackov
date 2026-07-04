@@ -78,6 +78,7 @@ func _ready() -> void:
 	var music_manager = _music_manager()
 	if music_manager != null:
 		music_manager.play_underwater()
+		music_manager.play_bubble()
 		music_manager.diving_from_boat = false
 
 	_hud.show_message("Collect treasure, hide in seaweed, use cover, extract at the anchor.")
@@ -151,6 +152,7 @@ func choose_extract() -> void:
 	_hud.show_message("Run complete.")
 	_update_status()
 	_leave_pause_mode()
+	_stop_bubble()
 	get_tree().change_scene_to_file(BoatScenePath)
 
 
@@ -187,6 +189,10 @@ func handle_player_caught(reason: String) -> void:
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
 		return
 
+	var music_mgr: Node = _music_manager()
+	if music_mgr != null:
+		music_mgr.play_fail()
+
 	_return_backpack_cursor_stack()
 	_inventory().clear_backpack()
 	for rarity in carried_counts.keys():
@@ -201,6 +207,7 @@ func handle_player_caught(reason: String) -> void:
 	_update_status()
 	_refresh_backpack_ui()
 	_leave_pause_mode()
+	_stop_bubble()
 	get_tree().change_scene_to_file(BoatScenePath)
 
 
@@ -326,6 +333,10 @@ func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
 
 
 func _on_monster_detected_player(_monster: Node, reason: String) -> void:
+	var music_mgr: Node = _music_manager()
+	if music_mgr != null:
+		music_mgr.play_monster_discovered()
+
 	if reason == "collision":
 		handle_player_caught(reason)
 	else:
@@ -377,6 +388,7 @@ func show_pause_settings() -> void:
 
 
 func exit_to_main_menu() -> void:
+	_stop_bubble()
 	_leave_pause_mode()
 	get_tree().change_scene_to_file(LobbyScenePath)
 
@@ -554,6 +566,12 @@ func _leave_pause_mode() -> void:
 
 func _music_manager():
 	return get_node_or_null("/root/MusicManager")
+
+
+func _stop_bubble() -> void:
+	var mgr: Node = _music_manager()
+	if mgr != null:
+		mgr.stop_bubble()
 
 
 func _progress():
