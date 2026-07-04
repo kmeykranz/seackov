@@ -150,7 +150,7 @@ func _process(delta: float) -> void:
 func _update_progress_debug() -> void:
 	var progress = _progress()
 	if progress == null:
-		_progress_label.text = "Progress save unavailable"
+		_progress_label.text = "进度存档不可用"
 		return
 	_progress_label.text = progress.get_summary_text()
 

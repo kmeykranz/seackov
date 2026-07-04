@@ -19,7 +19,7 @@ func _ready() -> void:
 
 
 func update_status(state_text: String, carried_value: int, carried_counts: Dictionary, warehouse_value: int, treasures_remaining: int) -> void:
-	status_label.text = "State: %s\nCarried: %d  C/R/L: %d/%d/%d\nBanked: %d  Remaining: %d" % [
+	status_label.text = "状态：%s\n携带：%d  普/稀/传：%d/%d/%d\n已存：%d  剩余：%d" % [
 		state_text,
 		carried_value,
 		carried_counts.common,
@@ -35,7 +35,7 @@ func show_message(text: String) -> void:
 
 
 func show_anchor_prompt(carried_value: int) -> void:
-	prompt_label.text = "Press F to return to ship and settle.\nCarried value: %d" % carried_value
+	prompt_label.text = "按 F 返回船上并结算。\n携带价值：%d" % carried_value
 	anchor_prompt.visible = true
 
 
@@ -44,7 +44,7 @@ func hide_anchor_prompt() -> void:
 
 
 func show_end(warehouse_value: int) -> void:
-	end_label.text = "Run extracted\nBanked value: %d" % warehouse_value
+	end_label.text = "本轮已撤离\n结算价值：%d" % warehouse_value
 	end_panel.visible = true
 
 

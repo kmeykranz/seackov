@@ -34,7 +34,7 @@ offset_bottom = 613.99994
 scale = Vector2(1.42, 1.42)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 34
-text = "Dive In"
+text = "开始下潜"
 
 [node name="boat_debug" type="Button" parent="."]
 layout_mode = 0
@@ -45,7 +45,7 @@ offset_bottom = 682.0
 scale = Vector2(1.15, 1.15)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 24
-text = "Boat Debug"
+text = "船舱调试"
 
 [node name="about" type="Button" parent="." unique_id=1090443531]
 layout_mode = 0
@@ -56,7 +56,7 @@ offset_bottom = 803.0
 scale = Vector2(1.42, 1.42)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 30
-text = "About"
+text = "关于"
 
 [node name="save_debug" type="Button" parent="."]
 layout_mode = 0
@@ -67,7 +67,7 @@ offset_bottom = 742.0
 scale = Vector2(1.15, 1.15)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 24
-text = "Save Debug"
+text = "存档调试"
 
 [node name="quit" type="Button" parent="." unique_id=1818672971]
 layout_mode = 0
@@ -78,7 +78,7 @@ offset_bottom = 905.99994
 scale = Vector2(1.425, 1.425)
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 30
-text = "quit"
+text = "退出"
 
 [node name="DebugPanel" type="Panel" parent="."]
 visible = false
@@ -96,7 +96,7 @@ offset_right = 480.0
 offset_bottom = 54.0
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 24
-text = "Progress Debug"
+text = "进度调试"
 
 [node name="ProgressLabel" type="Label" parent="DebugPanel"]
 layout_mode = 0
@@ -105,7 +105,7 @@ offset_top = 66.0
 offset_right = 488.0
 offset_bottom = 134.0
 theme_override_font_sizes/font_size = 20
-text = "Progress"
+text = "进度"
 
 [node name="ResetSaveButton" type="Button" parent="DebugPanel"]
 layout_mode = 0
@@ -115,7 +115,7 @@ offset_right = 244.0
 offset_bottom = 198.0
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 18
-text = "Reset Save"
+text = "重置存档"
 
 [node name="AddLegendaryButton" type="Button" parent="DebugPanel"]
 layout_mode = 0
@@ -125,7 +125,7 @@ offset_right = 490.0
 offset_bottom = 198.0
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 18
-text = "+ Upload"
+text = "+ 上传"
 
 [node name="UnlockNextButton" type="Button" parent="DebugPanel"]
 layout_mode = 0
@@ -135,7 +135,7 @@ offset_right = 244.0
 offset_bottom = 266.0
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 18
-text = "Unlock Next"
+text = "解锁下一层"
 
 [node name="LockStartButton" type="Button" parent="DebugPanel"]
 layout_mode = 0
@@ -145,4 +145,4 @@ offset_right = 490.0
 offset_bottom = 266.0
 theme_override_fonts/font = ExtResource("4_2rbxb")
 theme_override_font_sizes/font_size = 18
-text = "Lock Start"
+text = "锁定起始层"

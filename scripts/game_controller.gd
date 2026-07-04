@@ -81,7 +81,7 @@ func _ready() -> void:
 		music_manager.play_bubble()
 		music_manager.diving_from_boat = false
 
-	_hud.show_message("Collect treasure, hide in seaweed, use cover, extract at the anchor.")
+	_hud.show_message("收集宝物，躲进海草，利用掩体，在锚点返回。")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -136,7 +136,7 @@ func choose_extract() -> void:
 	if run_state != RunState.ANCHOR_PROMPT or not player_on_anchor:
 		return
 	if not _return_backpack_cursor_stack():
-		_hud.show_message("Return the held backpack item before extracting.")
+		_hud.show_message("返回前请先把手上的背包物品放回去。")
 		return
 
 	for rarity in warehouse_counts.keys():
@@ -149,7 +149,7 @@ func choose_extract() -> void:
 	_set_gameplay_enabled(false)
 	_hud.hide_anchor_prompt()
 	_hud.show_end(warehouse_value)
-	_hud.show_message("Run complete.")
+	_hud.show_message("本轮结束。")
 	_update_status()
 	_leave_pause_mode()
 	_stop_bubble()
@@ -162,7 +162,7 @@ func choose_continue() -> void:
 
 	run_state = RunState.SEARCHING
 	_hud.hide_anchor_prompt()
-	_hud.show_message("Extraction skipped. Keep searching.")
+	_hud.show_message("已跳过返回，继续搜索。")
 	_update_status()
 
 
@@ -179,9 +179,9 @@ func handle_player_discovered(reason: String) -> void:
 	_refresh_backpack_ui()
 
 	if lost_value > 0:
-		_hud.show_message("Detected by %s. Carried treasure lost: %d." % [reason, lost_value])
+		_hud.show_message("被 %s 发现，携带的宝物损失：%d。" % [reason, lost_value])
 	else:
-		_hud.show_message("Detected by %s, but no carried treasure was lost." % reason)
+		_hud.show_message("被 %s 发现，但没有损失携带的宝物。" % reason)
 	_update_status()
 
 
@@ -203,7 +203,7 @@ func handle_player_caught(reason: String) -> void:
 	active_anchor = null
 	_set_gameplay_enabled(false)
 	_hud.hide_anchor_prompt()
-	_hud.show_message("Caught by %s. Backpack emptied. Returning to ship." % reason)
+	_hud.show_message("被 %s 抓到。背包已清空，正在返回船上。" % reason)
 	_update_status()
 	_refresh_backpack_ui()
 	_leave_pause_mode()
@@ -319,7 +319,7 @@ func _on_treasure_collected(treasure: Node) -> void:
 	var stored := _add_run_item_to_backpack(treasure.rarity, treasure.value)
 	treasures_remaining = maxi(0, treasures_remaining - 1)
 	if stored:
-		_hud.show_message("Collected %s treasure worth %d into backpack." % [treasure.rarity, treasure.value])
+		_hud.show_message("已收集 %s 宝物，价值 %d，放入背包。" % [treasure.rarity, treasure.value])
 	_update_status()
 
 
@@ -328,7 +328,7 @@ func _on_chest_opened(_chest: Node, rarity: String, value: int) -> void:
 		return
 
 	if _add_run_item_to_backpack(rarity, value):
-		_hud.show_message("Opened chest and packed %s treasure worth %d." % [rarity, value])
+		_hud.show_message("已打开宝箱，收入 %s 宝物，价值 %d。" % [rarity, value])
 	_update_status()
 
 
@@ -349,7 +349,7 @@ func _on_anchor_player_entered(new_active_anchor: Node) -> void:
 	if run_state != RunState.EXTRACTED:
 		run_state = RunState.ANCHOR_PROMPT
 		_hud.show_anchor_prompt(carried_value)
-		_hud.show_message("Anchor ready. Press F to return to ship and settle.")
+		_hud.show_message("锚点已就绪。按 F 返回船上并结算。")
 		_update_status()
 
 
@@ -359,7 +359,7 @@ func _on_anchor_player_exited() -> void:
 	if run_state == RunState.ANCHOR_PROMPT:
 		run_state = RunState.SEARCHING
 		_hud.hide_anchor_prompt()
-		_hud.show_message("Left anchor range.")
+		_hud.show_message("已离开锚点范围。")
 		_update_status()
 
 
@@ -406,7 +406,7 @@ func toggle_minimap_ui() -> void:
 func _add_run_item_to_backpack(rarity: String, value: int) -> bool:
 	var result: Dictionary = _inventory().add_to_storage(STORAGE_BACKPACK, rarity, 1)
 	if int(result["total_count"]) <= 0:
-		_hud.show_message("Backpack is full. The recovered item could not be stored.")
+		_hud.show_message("背包已满，回收的物品无法存入。")
 		return false
 
 	carried_counts[rarity] += 1
@@ -522,13 +522,13 @@ func _handle_key_input() -> void:
 
 
 func _update_status() -> void:
-	var state_text := "Searching"
+	var state_text := "搜索中"
 	if run_state == RunState.ANCHOR_PROMPT:
-		state_text = "At anchor"
+		state_text = "锚点处"
 	elif run_state == RunState.EXTRACTED:
-		state_text = "Extracted"
+		state_text = "已撤离"
 	elif run_state == RunState.CAUGHT:
-		state_text = "Caught"
+		state_text = "已被抓到"
 
 	_hud.update_status(state_text, carried_value, carried_counts, warehouse_value, treasures_remaining)
 

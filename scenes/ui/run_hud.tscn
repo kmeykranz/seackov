@@ -1,102 +1,101 @@
-[gd_scene load_steps=2 format=4]
+[gd_scene format=3 uid="uid://b01n2cctakfyw"]
 
-[ext_resource type="Script" path="res://scripts/ui/run_hud.gd" id="1"]
+[ext_resource type="Script" uid="uid://levdvwdvt3cw" path="res://scripts/ui/run_hud.gd" id="1"]
 
-[node name="RunHud" type="CanvasLayer"]
+[node name="RunHud" type="CanvasLayer" unique_id=485112613]
 script = ExtResource("1")
 
-[node name="StatusPanel" type="PanelContainer" parent="."]
+[node name="StatusPanel" type="PanelContainer" parent="." unique_id=1674200507]
 offset_left = 16.0
 offset_top = 16.0
 offset_right = 340.0
 offset_bottom = 126.0
 
-[node name="MarginContainer" type="MarginContainer" parent="StatusPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="StatusPanel" unique_id=867618128]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
-[node name="StatusLabel" type="Label" parent="StatusPanel/MarginContainer"]
+[node name="StatusLabel" type="Label" parent="StatusPanel/MarginContainer" unique_id=158735913]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "State: Searching"
+text = "状态：搜索中"
 
-[node name="MessagePanel" type="PanelContainer" parent="."]
+[node name="MessagePanel" type="PanelContainer" parent="." unique_id=70641873]
 offset_left = 16.0
 offset_top = 136.0
 offset_right = 560.0
 offset_bottom = 190.0
 
-[node name="MarginContainer" type="MarginContainer" parent="MessagePanel"]
+[node name="MarginContainer" type="MarginContainer" parent="MessagePanel" unique_id=1241548290]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 10
 
-[node name="MessageLabel" type="Label" parent="MessagePanel/MarginContainer"]
+[node name="MessageLabel" type="Label" parent="MessagePanel/MarginContainer" unique_id=1371459635]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Ready"
+text = "就绪"
 
-[node name="AnchorPrompt" type="PanelContainer" parent="."]
-visible = false
+[node name="AnchorPrompt" type="PanelContainer" parent="." unique_id=12479146]
 offset_left = 430.0
 offset_top = 230.0
 offset_right = 850.0
 offset_bottom = 430.0
 
-[node name="MarginContainer" type="MarginContainer" parent="AnchorPrompt"]
+[node name="MarginContainer" type="MarginContainer" parent="AnchorPrompt" unique_id=142701272]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 16
 
-[node name="VBoxContainer" type="VBoxContainer" parent="AnchorPrompt/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="AnchorPrompt/MarginContainer" unique_id=1432673476]
 layout_mode = 2
 theme_override_constants/separation = 12
 
-[node name="TitleLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
+[node name="TitleLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=822196754]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
-text = "Anchor reached"
+text = "已到达锚点"
 horizontal_alignment = 1
 
-[node name="PromptLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
+[node name="PromptLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1362922077]
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
-text = "Bank carried treasure now, or keep searching."
+text = "按 F 返回船上结算，或继续搜索。"
 autowrap_mode = 3
 
-[node name="ExtractButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
-layout_mode = 2
+[node name="ExtractButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1999385801]
 visible = false
-text = "Return to ship and settle"
-
-[node name="ContinueButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer"]
 layout_mode = 2
-visible = false
-text = "Stay underwater"
+text = "返回船上并结算"
 
-[node name="EndPanel" type="PanelContainer" parent="."]
+[node name="ContinueButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=115323646]
+visible = false
+layout_mode = 2
+text = "继续下潜"
+
+[node name="EndPanel" type="PanelContainer" parent="." unique_id=230608193]
 visible = false
 offset_left = 430.0
 offset_top = 240.0
 offset_right = 850.0
 offset_bottom = 390.0
 
-[node name="MarginContainer" type="MarginContainer" parent="EndPanel"]
+[node name="MarginContainer" type="MarginContainer" parent="EndPanel" unique_id=1283670507]
 layout_mode = 2
 theme_override_constants/margin_left = 18
 theme_override_constants/margin_top = 18
 theme_override_constants/margin_right = 18
 theme_override_constants/margin_bottom = 18
 
-[node name="EndLabel" type="Label" parent="EndPanel/MarginContainer"]
+[node name="EndLabel" type="Label" parent="EndPanel/MarginContainer" unique_id=76636851]
 layout_mode = 2
 theme_override_font_sizes/font_size = 26
-text = "Run extracted"
+text = "本轮已撤离"
 horizontal_alignment = 1
