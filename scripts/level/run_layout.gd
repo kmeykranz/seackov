@@ -1,6 +1,6 @@
 extends RefCounted
 
-const WORLD_RECT := Rect2(Vector2.ZERO, Vector2(10000, 10000))
+const WORLD_RECT := Rect2(Vector2.ZERO, Vector2(10320, 5983))
 
 
 static func build() -> Dictionary:
