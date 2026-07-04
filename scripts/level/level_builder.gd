@@ -1,7 +1,6 @@
 extends Node
 
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
-const SeaFloorScene := preload("res://scenes/props/sea_floor.tscn")
 const SolidCoverScene := preload("res://scenes/props/solid_cover.tscn")
 const SeaweedCoverScene := preload("res://scenes/props/seaweed_cover.tscn")
 const PlayerScene := preload("res://scenes/actors/player_diver.tscn")

@@ -33,12 +33,17 @@ func _ready() -> void:
 
 	# —— 按钮信号连接 ——
 	$start.pressed.connect(_on_start_pressed)
+	$boat_debug.pressed.connect(_on_boat_debug_pressed)
 	$about.pressed.connect(_on_about_pressed)
 	$quit.pressed.connect(_on_quit_pressed)
 
 
 func _on_start_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/run_scene.tscn")
+
+
+func _on_boat_debug_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/boat_scene.tscn")
 
 
 func _on_about_pressed() -> void:

@@ -2,46 +2,248 @@
 
 [ext_resource type="Script" uid="uid://cvw3w6rhfq7yo" path="res://scripts/boat_scene.gd" id="1_5rki1"]
 [ext_resource type="PackedScene" uid="uid://e51xe1g2m4p5" path="res://scenes/actors/player_diver.tscn" id="2_xm3pv"]
+[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="3_font"]
+[ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="4_storage"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_manhole"]
-radius = 48.0
+radius = 58.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_upload"]
+size = Vector2(150, 130)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_warehouse"]
+size = Vector2(260, 380)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_purifier"]
+radius = 64.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_mission"]
+size = Vector2(220, 150)
 
 [node name="BoatScene" type="Node2D" unique_id=391469930]
 script = ExtResource("1_5rki1")
 
 [node name="World" type="Node2D" parent="." unique_id=1920583748]
 
+[node name="Background" type="Polygon2D" parent="World" unique_id=2031828128]
+color = Color(0.02, 0.07, 0.1, 1)
+polygon = PackedVector2Array(0, 0, 1920, 0, 1920, 1080, 0, 1080)
+
+[node name="Hull" type="Polygon2D" parent="World"]
+color = Color(0.13, 0.18, 0.22, 1)
+polygon = PackedVector2Array(960, 74, 1228, 232, 1376, 922, 1314, 1018, 606, 1018, 544, 922, 692, 232)
+
+[node name="InnerDeck" type="Polygon2D" parent="World"]
+color = Color(0.21, 0.27, 0.31, 1)
+polygon = PackedVector2Array(960, 136, 1168, 262, 1288, 906, 1244, 956, 676, 956, 632, 906, 752, 262)
+
+[node name="CenterAisle" type="Polygon2D" parent="World"]
+color = Color(0.11, 0.15, 0.18, 1)
+polygon = PackedVector2Array(862, 322, 1058, 322, 1110, 916, 810, 916)
+
 [node name="PlayerDiver" parent="World" unique_id=1421304574 instance=ExtResource("2_xm3pv")]
+position = Vector2(960, 820)
 
 [node name="Manhole" type="Area2D" parent="World" unique_id=1592771964]
-position = Vector2(200, 0)
+position = Vector2(626, 534)
 collision_layer = 0
+collision_mask = 1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="World/Manhole" unique_id=1189261146]
 shape = SubResource("CircleShape2D_manhole")
 
 [node name="Ring" type="Polygon2D" parent="World/Manhole" unique_id=2058701884]
-color = Color(0.22, 0.25, 0.3, 1)
-polygon = PackedVector2Array(-40, -8, 40, -8, 46, 12, -46, 12)
+color = Color(0.12, 0.16, 0.18, 1)
+polygon = PackedVector2Array(-62, -20, 62, -20, 72, 24, -72, 24)
 
 [node name="Lid" type="Polygon2D" parent="World/Manhole" unique_id=127430521]
-color = Color(0.4, 0.44, 0.5, 1)
-polygon = PackedVector2Array(-32, -28, 32, -28, 40, -8, -40, -8)
+color = Color(0.42, 0.48, 0.53, 1)
+polygon = PackedVector2Array(-50, -44, 50, -44, 62, -20, -62, -20)
 
 [node name="Grid" type="Polygon2D" parent="World/Manhole" unique_id=335027009]
-color = Color(0.18, 0.18, 0.2, 1)
-polygon = PackedVector2Array(-4, -26, 4, -26, 4, 8, -4, 8)
+color = Color(0.07, 0.08, 0.09, 1)
+polygon = PackedVector2Array(-6, -40, 6, -40, 6, 18, -6, 18)
+
+[node name="NameLabel" type="Label" parent="World/Manhole"]
+offset_left = -88.0
+offset_top = 32.0
+offset_right = 88.0
+offset_bottom = 58.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "下潜入口"
+horizontal_alignment = 1
 
 [node name="PromptLabel" type="Label" parent="World/Manhole" unique_id=1061846922]
 visible = false
-offset_left = -60.0
-offset_top = -58.0
-offset_right = 60.0
-offset_bottom = -32.0
+offset_left = -86.0
+offset_top = -86.0
+offset_right = 86.0
+offset_bottom = -60.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
 text = "F 进入海底"
 horizontal_alignment = 1
 
-[node name="Background" type="Sprite2D" parent="World" unique_id=2031828128]
+[node name="UploadDevice" type="Area2D" parent="World"]
+position = Vector2(612, 730)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/UploadDevice"]
+shape = SubResource("RectangleShape2D_upload")
+
+[node name="Body" type="Polygon2D" parent="World/UploadDevice"]
+color = Color(0.17, 0.32, 0.38, 1)
+polygon = PackedVector2Array(-58, -56, 58, -56, 58, 56, -58, 56)
+
+[node name="Core" type="Polygon2D" parent="World/UploadDevice"]
+color = Color(0.15, 0.78, 0.9, 0.78)
+polygon = PackedVector2Array(-26, -30, 26, -30, 26, 30, -26, 30)
+
+[node name="NameLabel" type="Label" parent="World/UploadDevice"]
+offset_left = -92.0
+offset_top = 70.0
+offset_right = 92.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "上传装置"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="World/UploadDevice"]
+visible = false
+offset_left = -116.0
+offset_top = -92.0
+offset_right = 116.0
+offset_bottom = -66.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "F 上传背包"
+horizontal_alignment = 1
+
+[node name="Warehouse" type="Area2D" parent="World"]
+position = Vector2(1202, 640)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/Warehouse"]
+shape = SubResource("RectangleShape2D_warehouse")
+
+[node name="BackPanel" type="Polygon2D" parent="World/Warehouse"]
+color = Color(0.16, 0.14, 0.11, 1)
+polygon = PackedVector2Array(-112, -174, 112, -174, 112, 174, -112, 174)
+
+[node name="ShelfA" type="Polygon2D" parent="World/Warehouse"]
+color = Color(0.43, 0.35, 0.22, 1)
+polygon = PackedVector2Array(-96, -86, 96, -86, 96, -58, -96, -58)
+
+[node name="ShelfB" type="Polygon2D" parent="World/Warehouse"]
+color = Color(0.43, 0.35, 0.22, 1)
+polygon = PackedVector2Array(-96, 12, 96, 12, 96, 40, -96, 40)
+
+[node name="CrateA" type="Polygon2D" parent="World/Warehouse"]
+color = Color(0.59, 0.48, 0.29, 1)
+polygon = PackedVector2Array(-78, 58, -12, 58, -12, 124, -78, 124)
+
+[node name="CrateB" type="Polygon2D" parent="World/Warehouse"]
+color = Color(0.5, 0.41, 0.25, 1)
+polygon = PackedVector2Array(18, 66, 82, 66, 82, 132, 18, 132)
+
+[node name="NameLabel" type="Label" parent="World/Warehouse"]
+offset_left = -92.0
+offset_top = 188.0
+offset_right = 92.0
+offset_bottom = 214.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "仓库"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="World/Warehouse"]
+visible = false
+offset_left = -118.0
+offset_top = -214.0
+offset_right = 118.0
+offset_bottom = -188.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "F 打开仓库"
+horizontal_alignment = 1
+
+[node name="PurifierDevice" type="Area2D" parent="World"]
+position = Vector2(960, 210)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/PurifierDevice"]
+shape = SubResource("CircleShape2D_purifier")
+
+[node name="OuterShell" type="Polygon2D" parent="World/PurifierDevice"]
+color = Color(0.18, 0.34, 0.39, 1)
+polygon = PackedVector2Array(0, -74, 54, -22, 42, 58, -42, 58, -54, -22)
+
+[node name="Core" type="Polygon2D" parent="World/PurifierDevice"]
+color = Color(0.66, 0.95, 0.86, 0.86)
+polygon = PackedVector2Array(0, -38, 26, -10, 18, 34, -18, 34, -26, -10)
+
+[node name="NameLabel" type="Label" parent="World/PurifierDevice"]
+offset_left = -100.0
+offset_top = 72.0
+offset_right = 100.0
+offset_bottom = 98.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "净化装置"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="World/PurifierDevice"]
+visible = false
+offset_left = -118.0
+offset_top = -108.0
+offset_right = 118.0
+offset_bottom = -82.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "F 查看装置"
+horizontal_alignment = 1
+
+[node name="MissionConsole" type="Area2D" parent="World"]
+position = Vector2(960, 430)
+collision_layer = 0
+collision_mask = 1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="World/MissionConsole"]
+shape = SubResource("RectangleShape2D_mission")
+
+[node name="Frame" type="Polygon2D" parent="World/MissionConsole"]
+color = Color(0.09, 0.11, 0.13, 1)
+polygon = PackedVector2Array(-102, -70, 102, -70, 102, 70, -102, 70)
+
+[node name="Screen" type="Polygon2D" parent="World/MissionConsole"]
+color = Color(0.1, 0.58, 0.68, 0.72)
+polygon = PackedVector2Array(-78, -46, 78, -46, 78, 46, -78, 46)
+
+[node name="NameLabel" type="Label" parent="World/MissionConsole"]
+offset_left = -104.0
+offset_top = 84.0
+offset_right = 104.0
+offset_bottom = 110.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 22
+text = "总部任务"
+horizontal_alignment = 1
+
+[node name="PromptLabel" type="Label" parent="World/MissionConsole"]
+visible = false
+offset_left = -120.0
+offset_top = -106.0
+offset_right = 120.0
+offset_bottom = -80.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "F 接收任务"
+horizontal_alignment = 1
 
 [node name="Cover" type="Node2D" parent="World" unique_id=807093317]
 
@@ -50,3 +252,51 @@ horizontal_alignment = 1
 [node name="Exits" type="Node2D" parent="World" unique_id=1455317923]
 
 [node name="Actors" type="Node2D" parent="World" unique_id=1562207212]
+
+[node name="BoatHud" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Panel" parent="BoatHud"]
+offset_left = 24.0
+offset_top = 24.0
+offset_right = 552.0
+offset_bottom = 232.0
+
+[node name="TitleLabel" type="Label" parent="BoatHud/Panel"]
+offset_left = 18.0
+offset_top = 14.0
+offset_right = 510.0
+offset_bottom = 42.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 26
+text = "探索船"
+
+[node name="MessageLabel" type="Label" parent="BoatHud/Panel"]
+offset_left = 18.0
+offset_top = 50.0
+offset_right = 510.0
+offset_bottom = 112.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "船舱待命。"
+autowrap_mode = 2
+
+[node name="InventoryLabel" type="Label" parent="BoatHud/Panel"]
+offset_left = 18.0
+offset_top = 122.0
+offset_right = 510.0
+offset_bottom = 198.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 18
+text = "背包：无"
+autowrap_mode = 2
+
+[node name="BackToMenuButton" type="Button" parent="BoatHud"]
+offset_left = 1676.0
+offset_top = 28.0
+offset_right = 1878.0
+offset_bottom = 76.0
+theme_override_fonts/font = ExtResource("3_font")
+theme_override_font_sizes/font_size = 20
+text = "返回主菜单"
+
+[node name="StorageTransferUi" parent="." instance=ExtResource("4_storage")]

@@ -1,0 +1,99 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/storage_transfer_ui.gd" id="1_storage"]
+[ext_resource type="FontFile" uid="uid://c411kcexy7aou" path="res://assets/SourceHanSerifCN-Heavy.otf" id="2_font"]
+
+[node name="StorageTransferUi" type="CanvasLayer"]
+layer = 20
+script = ExtResource("1_storage")
+
+[node name="Panel" type="Panel" parent="."]
+visible = false
+offset_left = 520.0
+offset_top = 170.0
+offset_right = 1400.0
+offset_bottom = 830.0
+
+[node name="MarginContainer" type="MarginContainer" parent="Panel"]
+layout_mode = 0
+offset_left = 24.0
+offset_top = 22.0
+offset_right = 856.0
+offset_bottom = 636.0
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 30
+text = "背包 / 仓库"
+
+[node name="HeldStackLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(240, 44)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "手上：空"
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="Panel/MarginContainer/VBoxContainer/Header"]
+layout_mode = 2
+custom_minimum_size = Vector2(96, 44)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "关闭"
+
+[node name="StatusLabel" type="Label" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 54)
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 18
+text = "左键整组拿取/放下，右键拿一半或放一个，Shift+点击快速转移。"
+autowrap_mode = 2
+
+[node name="StorageRows" type="HBoxContainer" parent="Panel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 26
+
+[node name="BackpackColumn" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/StorageRows"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="BackpackTitle" type="Label" parent="Panel/MarginContainer/VBoxContainer/StorageRows/BackpackColumn"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "背包"
+horizontal_alignment = 1
+
+[node name="BackpackGrid" type="GridContainer" parent="Panel/MarginContainer/VBoxContainer/StorageRows/BackpackColumn"]
+layout_mode = 2
+columns = 6
+
+[node name="WarehouseColumn" type="VBoxContainer" parent="Panel/MarginContainer/VBoxContainer/StorageRows"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="WarehouseTitle" type="Label" parent="Panel/MarginContainer/VBoxContainer/StorageRows/WarehouseColumn"]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 24
+text = "仓库"
+horizontal_alignment = 1
+
+[node name="WarehouseGrid" type="GridContainer" parent="Panel/MarginContainer/VBoxContainer/StorageRows/WarehouseColumn"]
+layout_mode = 2
+columns = 6

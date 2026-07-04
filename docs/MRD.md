@@ -8,7 +8,7 @@ Players who enjoy short-session action roguelite loops and stealth-risk decision
 - Extraction games: carried value is unsafe until extracted.
 
 ## Marketable Hook
-An underwater treasure dive where every extra pickup increases both reward and pressure because a single detection clears the carried haul.
+A flooded Earth recovery dive where every extra pickup increases both reward and pressure because a single detection clears the carried haul before it reaches the boat.
 
 ## Prototype Positioning
-This build validates the single-run loop before adding ship systems, progression, procedural generation, or expanding exploration areas.
+This build validates the single-run loop plus a minimal boat-side item handling loop before adding full campaign flow, save persistence, procedural generation, or expanding exploration areas.
