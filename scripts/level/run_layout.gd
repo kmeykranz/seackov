@@ -26,7 +26,7 @@ const REGION_POPULATION := {
 	1: {"seaweed": 7, "coral": 6, "chests": 1, "monsters": 2, "treasures": {"common": 9, "rare": 3, "legendary": 2}},
 	2: {"seaweed": 9, "coral": 8, "chests": 2, "monsters": 5, "treasures": {"common": 6, "rare": 8, "legendary": 4}},
 	3: {"seaweed": 11, "coral": 10, "chests": 3, "monsters": 10, "treasures": {"common": 4, "rare": 10, "legendary": 8}},
-	4: {"seaweed": 13, "coral": 12, "chests": 4, "monsters": 15, "treasures": {"common": 2, "rare": 10, "legendary": 14}},
+	4: {"seaweed": 13, "coral": 12, "chests": 4, "monsters": 500, "treasures": {"common": 2, "rare": 10, "legendary": 14}},
 }
 
 
