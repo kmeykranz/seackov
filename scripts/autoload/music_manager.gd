@@ -6,10 +6,15 @@ const LOBBY_MUSIC_PATH := "res://assets/sound/music/lobby.mp3"
 const BOAT_MUSIC_PATH := "res://assets/sound/music/boat.mp3"
 const DIVE_ALARM_PATH := "res://assets/sound/effect/dive_alarm.mp3"
 const UNDERWATER_PATH := "res://assets/sound/effect/underwater.mp3"
+const CHEST_OPEN_PATH := "res://assets/sound/effect/chest_open.mp3"
+const MONSTER_DISCOVERED_PATH := "res://assets/sound/effect/npc/monster_discovered.mp3"
+const BUBBLE_PATH := "res://assets/sound/music/bubble.mp3"
+const FAIL_PATH := "res://assets/sound/effect/fail.mp3"
 
 
 var _music_player: AudioStreamPlayer
 var _sfx_player: AudioStreamPlayer
+var _ambient_player: AudioStreamPlayer
 
 ## 标记：是否是从船上下水进入 run_scene（用于决定是否已播放过 dive_alarm）
 var diving_from_boat: bool = false
@@ -24,6 +29,11 @@ func _ready() -> void:
 	_sfx_player = AudioStreamPlayer.new()
 	_sfx_player.bus = "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master"
 	add_child(_sfx_player)
+
+	_ambient_player = AudioStreamPlayer.new()
+	_ambient_player.bus = "SFX" if AudioServer.get_bus_index("SFX") != -1 else "Master"
+	_ambient_player.finished.connect(_on_ambient_finished)
+	add_child(_ambient_player)
 
 
 ## —— 音乐 ——
@@ -61,4 +71,36 @@ func play_dive_alarm() -> void:
 
 func play_underwater() -> void:
 	_sfx_player.stream = load(UNDERWATER_PATH)
+	_sfx_player.play()
+
+
+func play_chest_open() -> void:
+	_sfx_player.stream = load(CHEST_OPEN_PATH)
+	_sfx_player.play()
+
+
+func play_monster_discovered() -> void:
+	_sfx_player.stream = load(MONSTER_DISCOVERED_PATH)
+	_sfx_player.play()
+
+
+## —— 环境音（可与音乐同时播放）——
+
+func play_bubble() -> void:
+	_ambient_player.stream = load(BUBBLE_PATH)
+	_ambient_player.play()
+
+
+func stop_bubble() -> void:
+	_ambient_player.stop()
+
+
+func _on_ambient_finished() -> void:
+	_ambient_player.play()
+
+
+## —— 其他音效 ——
+
+func play_fail() -> void:
+	_sfx_player.stream = load(FAIL_PATH)
 	_sfx_player.play()
