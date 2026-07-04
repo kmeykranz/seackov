@@ -4,16 +4,17 @@
 Godot 4.7 stable.
 
 ## Technical Approach
-- `RunSceneController` owns only run state, haul accounting, extraction choices, and signal wiring.
-- `PlayerInventory` is a Godot autoload that owns runtime backpack, warehouse, uploaded records, and research point totals.
+- `RunSceneController` owns run state, haul accounting, extraction choices, run backpack UI toggling, and signal wiring.
+- `PlayerInventory` is a Godot autoload that owns runtime backpack, warehouse, uploaded records, research point totals, and slot-level add/remove operations.
 - `BoatScene` owns the boat interaction zones and delegates item state changes to `PlayerInventory`.
-- `StorageTransferUi` owns the storage panel, creates fixed grid slots, tracks the temporary hand stack, and calls slot-level `PlayerInventory` methods.
+- `StorageTransferUi` owns the storage panel, can show backpack-only or backpack/warehouse modes, creates fixed grid slots, tracks the temporary hand stack, and calls slot-level `PlayerInventory` methods.
 - `StorageSlot` owns Godot `Control._gui_input` callbacks for one clickable grid cell.
 - `RunLayout` provides explicit level data for bounds, spawns, cover, treasure, and patrol routes.
 - `RunLevelBuilder` instantiates separate scenes into the run scene containers.
 - `PlayerDiver` owns player movement, camera limits, and hidden-cover state.
 - `MonsterPatrol` owns patrol/chase behavior and line-of-sight detection.
 - `TreasurePickup` owns pickup collision and rarity value.
+- `TreasureChest` owns one-time weighted random reward selection.
 - `AnchorExit` owns anchor overlap signals.
 - Prop and HUD scripts own their own placeholder presentation.
 
@@ -24,6 +25,7 @@ Godot 4.7 stable.
 - `scenes/props/anchor_exit.tscn`
 - `scenes/props/solid_cover.tscn`
 - `scenes/props/seaweed_cover.tscn`
+- `scenes/props/chest_box.tscn`
 - `scenes/ui/run_hud.tscn`
 - `scenes/ui/storage_transfer_ui.tscn`
 - `scenes/boat_scene.tscn`
@@ -37,6 +39,7 @@ Godot 4.7 stable.
 - `Area2D` body overlap signals for treasure, anchor, seaweed, and monster collision checks.
 - `Area2D` body overlap signals for boat interaction prompts.
 - `Control._gui_input` and `InputEventMouseButton` for Minecraft-like inventory clicks.
+- `Node._unhandled_input` and `InputEventKey` for `B` inventory toggles in run and boat scenes.
 - Project autoloads for runtime cross-scene inventory state.
 - `PhysicsRayQueryParameters2D` with `PhysicsDirectSpaceState2D.intersect_ray()` for solid-cover line-of-sight blocking.
 
@@ -57,4 +60,4 @@ Godot 4.7 stable.
 - Layer 6: seaweed hiding areas.
 
 ## Rollback
-Revert the added gameplay `scenes/`, `scripts/`, `tests/`, `docs/` files and restore `project.godot` to the previous launch/plugin/autoload configuration. Remove the `godot-mcp` Codex MCP entry with `codex mcp remove godot-mcp` if the editor bridge is no longer needed.
+Revert the added gameplay `scenes/`, `scripts/`, `tests/`, `docs/` files and restore `project.godot` to the previous launch/plugin/autoload configuration. To roll back only the run backpack feature, remove the `StorageTransferUi` instance from `run_scene.tscn`, remove run-side `B` handling and immediate backpack writes from `RunSceneController`, and restore extraction-time backpack insertion. Remove the `godot-mcp` Codex MCP entry with `codex mcp remove godot-mcp` if the editor bridge is no longer needed.

@@ -10,7 +10,9 @@ const ENTITY_SCENE_PATHS := [
 	"res://scenes/props/anchor_exit.tscn",
 	"res://scenes/props/solid_cover.tscn",
 	"res://scenes/props/seaweed_cover.tscn",
+	"res://scenes/props/chest_box.tscn",
 	"res://scenes/ui/run_hud.tscn",
+	"res://scenes/ui/storage_transfer_ui.tscn",
 	"res://scenes/boat_scene.tscn",
 ]
 
@@ -65,6 +67,7 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.has_node("World/Cover/WestGrass"), "seaweed scene is instanced")
 	_assert(game.has_node("World/Exits/AnchorExit"), "anchor scene is instanced")
 	_assert(game.has_node("RunHud"), "HUD scene is instanced")
+	_assert(game.has_node("StorageTransferUi"), "run backpack UI is instanced")
 	_assert(game.player.has_node("BodyPivot"), "player placeholder art exists")
 	_assert(game.player.position.y >= 250.0, "player starts below the HUD area")
 
@@ -72,19 +75,53 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(monster.has_node("VisionCone"), "monster vision placeholder exists")
 	_assert(game.treasures_container.get_child(0).has_node("Gem"), "treasure placeholder art exists")
 
+	var run_storage_ui = game.get_node("StorageTransferUi")
+	_assert(not game.is_backpack_ui_open(), "run backpack UI starts closed")
+	var b_key := InputEventKey.new()
+	b_key.keycode = KEY_B
+	b_key.pressed = true
+	game._unhandled_input(b_key)
+	_assert(game.is_backpack_ui_open(), "B opens run backpack UI")
+	_assert(not run_storage_ui.is_warehouse_visible(), "run backpack UI hides warehouse storage")
+	game._unhandled_input(b_key)
+	_assert(not game.is_backpack_ui_open(), "B closes run backpack UI")
+
 
 func _test_collect_and_clear_penalty() -> void:
 	var treasure = game.treasures_container.get_child(0)
 	var value: int = treasure.value
+	var rarity: String = treasure.rarity
+	var backpack_before: int = inventory.get_backpack_total_count()
+	var rarity_before: int = inventory.get_backpack_count(rarity)
 	treasure.collect(game.player)
 	await process_frame
 
 	_assert(game.carried_value == value, "collecting treasure increases carried value")
+	_assert(inventory.get_backpack_count(rarity) == rarity_before + 1, "collecting treasure stores item in backpack immediately")
 	_assert(game.treasures_remaining == 8, "collecting treasure decreases remaining count")
+
+	var run_storage_ui = game.get_node("StorageTransferUi")
+	var b_key := InputEventKey.new()
+	b_key.keycode = KEY_B
+	b_key.pressed = true
+	game._unhandled_input(b_key)
+	run_storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
+	_assert(run_storage_ui.get_cursor_stack()["count"] == 1, "run backpack can hold a picked-up item on the cursor")
 
 	game.handle_player_discovered("test")
 	_assert(game.carried_value == 0, "detection clears carried value")
+	_assert(run_storage_ui.get_cursor_stack()["count"] == 0, "detection clears current run item even if it was held by the cursor")
+	_assert(inventory.get_backpack_total_count() == backpack_before, "detection removes current run backpack items")
 	_assert(game.warehouse_value == 0, "detection does not change banked value")
+	game._unhandled_input(b_key)
+
+	var chest = game.chests[0]
+	chest._open()
+	await process_frame
+	_assert(inventory.get_backpack_total_count() == backpack_before + 1, "opening a chest stores one random item in backpack")
+	_assert(game.carried_value > 0, "opening a chest increases carried value")
+	game.handle_player_discovered("test chest")
+	_assert(inventory.get_backpack_total_count() == backpack_before, "detection removes chest reward from backpack")
 
 
 func _test_anchor_choices_and_extraction() -> void:
@@ -93,8 +130,10 @@ func _test_anchor_choices_and_extraction() -> void:
 
 	var treasure = game.treasures_container.get_child(0)
 	var value: int = treasure.value
+	var backpack_before: int = inventory.get_backpack_total_count()
 	treasure.collect(game.player)
 	await process_frame
+	_assert(inventory.get_backpack_total_count() == backpack_before + 1, "run pickup enters backpack before extraction")
 
 	game.player.global_position = game.anchor.global_position
 	await physics_frame
@@ -120,7 +159,7 @@ func _test_anchor_choices_and_extraction() -> void:
 	_assert(game.run_state == RunSceneControllerScript.RunState.EXTRACTED, "extracting ends the run")
 	_assert(game.warehouse_value == value, "extracting banks carried value")
 	_assert(game.carried_value == 0, "extracting clears carried value")
-	_assert(inventory.get_backpack_total_count() == 1, "extracting moves recovered items into backpack")
+	_assert(inventory.get_backpack_total_count() == backpack_before + 1, "extracting keeps recovered backpack items without duplicating them")
 	await process_frame
 	await process_frame
 	await process_frame
@@ -171,6 +210,7 @@ func _test_inventory_and_boat_scene() -> void:
 
 	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_RIGHT)
 	_assert(storage_ui.get_cursor_stack()["count"] == 2, "right click takes half a stack")
+	_assert(storage_ui.is_cursor_preview_visible(), "held item preview appears at the cursor")
 	_assert(inventory.get_backpack_count("common") == 2, "right click leaves the other half in the slot")
 
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_RIGHT)
@@ -179,6 +219,7 @@ func _test_inventory_and_boat_scene() -> void:
 
 	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
 	_assert(storage_ui.get_cursor_stack()["count"] == 0, "left click places all held items")
+	_assert(not storage_ui.is_cursor_preview_visible(), "held item preview hides after placing all items")
 	_assert(inventory.get_backpack_count("common") == 3, "left click merges held stack into matching slot")
 
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT)
@@ -193,6 +234,18 @@ func _test_inventory_and_boat_scene() -> void:
 	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT, true)
 	_assert(inventory.get_backpack_count("common") == 4, "shift click can move warehouse stack back")
 	_assert(inventory.get_warehouse_total_count() == 0, "shift click clears warehouse source stack")
+
+	inventory.add_to_storage("warehouse", "rare", 1)
+	storage_ui.refresh()
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
+	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT)
+	_assert(inventory.get_warehouse_count("common") == 4, "left click swaps different item types instead of merging")
+	_assert(inventory.get_warehouse_count("rare") == 0, "different item types do not share one slot")
+	_assert(storage_ui.get_cursor_stack()["rarity"] == "rare", "swapping leaves the replaced item on the cursor")
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT)
+	storage_ui.click_slot("backpack", 0, MOUSE_BUTTON_LEFT, true)
+	storage_ui.click_slot("warehouse", 0, MOUSE_BUTTON_LEFT, true)
+	_assert(inventory.get_backpack_count("common") == 4, "common stack returns to backpack after swap guard test")
 
 	inventory.receive_extracted_counts({"common": 1, "rare": 0, "legendary": 1})
 	var upload_handled: bool = boat.perform_interaction("upload")
