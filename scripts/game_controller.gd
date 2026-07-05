@@ -4,6 +4,7 @@ class_name RunSceneController
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
 const RunToolSystemScript := preload("res://scripts/items/run_tool_system.gd")
+const RunStorySystemScript := preload("res://scripts/story/run_story_system.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
 const LobbyScenePath := "res://scenes/ui/lobby.tscn"
 const FailScenePath := "res://scenes/ui/fail.tscn"
@@ -46,6 +47,8 @@ var locked_region_rects: Array = []
 var soft_boundary_x: float = -1.0
 var soft_boundary_margin: float = 520.0
 var _tool_system: Node
+var _story_system: Node
+var _terminal_active: bool = false
 
 var player_on_anchor: bool = false
 var carried_value: int = 0
@@ -85,6 +88,7 @@ func _ready() -> void:
 	_build_level()
 	_wire_ui()
 	_setup_tool_system()
+	_setup_story_system()
 	_update_depth_lighting()
 	_update_status()
 
@@ -107,6 +111,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if run_state == RunState.EXTRACTED or run_state == RunState.CAUGHT:
+		return
+
+	if not get_tree().paused and _story_system != null and _story_system.handle_key_event(event):
+		_handle_key_input()
 		return
 
 	if not get_tree().paused and _tool_system != null and _tool_system.handle_key_event(event):
@@ -181,6 +189,7 @@ func choose_extract() -> void:
 	_hud.show_end(warehouse_value)
 	_hud.show_message("本轮结束。")
 	_record_recovered_knowledge()
+	_record_final_story_extraction()
 	_update_status()
 	_leave_pause_mode()
 	_stop_bubble()
@@ -222,6 +231,7 @@ func handle_player_caught(reason: String) -> void:
 		return
 	if _tool_system != null and _tool_system.try_block_damage():
 		return
+	_record_final_story_failure()
 
 	var reason_label := _detection_reason_label(reason)
 	var music_mgr: Node = _music_manager()
@@ -339,10 +349,14 @@ func get_tool_system() -> Node:
 	return _tool_system
 
 
+func get_story_system() -> Node:
+	return _story_system
+
+
 func _build_level() -> void:
 	var builder: LevelBuilder = LevelBuilder.new()
 	add_child(builder)
-	var layout := RunLayout.build(_progress_unlocked_region_count())
+	var layout := RunLayout.build(_progress_unlocked_region_count(), _progress_selected_spawn_anchor_id())
 	var result := builder.build(_containers(), layout)
 
 	player = result["player"]
@@ -446,6 +460,8 @@ func _on_anchor_player_exited() -> void:
 func _set_gameplay_enabled(enabled: bool) -> void:
 	if not enabled and _tool_system != null:
 		_tool_system.cancel_use()
+	if not enabled and _story_system != null:
+		_story_system.cancel_interaction()
 	if player != null:
 		player.control_enabled = enabled
 	for monster in monsters:
@@ -520,6 +536,8 @@ func _on_progress_changed() -> void:
 	locked_region_rects = RunLayout.locked_region_rects_for_unlocked_count(unlocked_region_count)
 	soft_boundary_x = RunLayout.soft_boundary_x_for_unlocked_count(unlocked_region_count)
 	_refresh_region_access()
+	if _story_system != null:
+		_story_system.refresh_targets()
 	_refresh_minimap_ui()
 	_update_status()
 
@@ -540,7 +558,14 @@ func _refresh_minimap_ui() -> void:
 		return
 	_minimap_ui.configure(world_rect, regions)
 	_minimap_ui.set_run_state(unlocked_region_count, anchors, spawn_anchor_id, player)
+	_minimap_ui.set_story_targets(_current_story_minimap_targets())
 	_minimap_ui.refresh()
+
+
+func _current_story_minimap_targets() -> Array:
+	if _story_system == null or not _story_system.has_method("get_minimap_targets"):
+		return []
+	return _story_system.get_minimap_targets()
 
 
 func _setup_tool_system() -> void:
@@ -551,9 +576,22 @@ func _setup_tool_system() -> void:
 	_tool_system.configure(player, monsters, regions, _effect_container, _hud, _progress())
 
 
+func _setup_story_system() -> void:
+	_story_system = RunStorySystemScript.new()
+	_story_system.name = "RunStorySystem"
+	add_child(_story_system)
+	_story_system.message_requested.connect(_hud.show_message)
+	_story_system.terminal_requested.connect(_show_terminal_dialogue)
+	_story_system.targets_changed.connect(_refresh_minimap_ui)
+	_story_system.configure(player, _effect_container, _hud, _progress())
+	_refresh_minimap_ui()
+
+
 func _record_recovered_knowledge() -> void:
 	if _tool_system == null:
 		return
+	if _tool_system.has_method("scan_current_region"):
+		_tool_system.scan_current_region()
 	var recovered: Array = _tool_system.flush_recovered_knowledge()
 	if recovered.is_empty():
 		return
@@ -563,6 +601,22 @@ func _record_recovered_knowledge() -> void:
 	var added: Array[String] = progress.record_recovered_knowledge(recovered)
 	if not added.is_empty():
 		_hud.show_message("已带回 %d 条新知识，回船后可在上传装置解析。" % added.size())
+
+
+func _record_final_story_extraction() -> void:
+	var progress = _progress()
+	if progress == null or not progress.has_method("mark_final_extraction"):
+		return
+	var result: Dictionary = progress.mark_final_extraction()
+	if bool(result.get("changed", false)):
+		_hud.show_message("真相数据已带回船上，前往上传装置完成传输。")
+
+
+func _record_final_story_failure() -> void:
+	var progress = _progress()
+	if progress == null or not progress.has_method("mark_final_failure"):
+		return
+	progress.mark_final_failure()
 
 
 func _rebuild_locked_region_fog() -> void:
@@ -619,6 +673,13 @@ func _progress_unlocked_region_count() -> int:
 	if progress == null:
 		return 1
 	return progress.get_unlocked_region_count()
+
+
+func _progress_selected_spawn_anchor_id() -> String:
+	var progress = _progress()
+	if progress == null or not progress.has_method("get_selected_spawn_anchor_id"):
+		return ""
+	return String(progress.get_selected_spawn_anchor_id())
 
 
 func _handle_key_input() -> void:
@@ -707,6 +768,24 @@ func _stop_bubble() -> void:
 
 func _transition_to_fail_page() -> void:
 	get_tree().change_scene_to_file(FailScenePath)
+
+
+func _show_terminal_dialogue(text: String, speaker: String = "终端（总部）") -> void:
+	if _terminal_active:
+		return
+	_terminal_active = true
+	_set_gameplay_enabled(false)
+	var terminal := TerminalIntro.new()
+	terminal.name = "TerminalDialogue"
+	terminal.configure(text, speaker)
+	add_child(terminal)
+	terminal.intro_finished.connect(_on_terminal_dialogue_finished)
+
+
+func _on_terminal_dialogue_finished() -> void:
+	_terminal_active = false
+	if run_state != RunState.EXTRACTED and run_state != RunState.CAUGHT:
+		_set_gameplay_enabled(true)
 
 
 func _progress():

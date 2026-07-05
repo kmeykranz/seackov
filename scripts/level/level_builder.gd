@@ -25,7 +25,11 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	_rng.randomize()
 	var world_rect: Rect2 = layout["world_rect"]
 	var unlocked_region_count := int(layout.get("unlocked_region_count", 1))
-	var spawn_anchor_spec := _select_spawn_anchor(layout["anchors"], unlocked_region_count)
+	var spawn_anchor_spec := _select_spawn_anchor(
+		layout["anchors"],
+		unlocked_region_count,
+		String(layout.get("selected_spawn_anchor_id", ""))
+	)
 
 	_spawn_boundaries(containers["cover"], world_rect)
 	var forbidden_polygons := _forbidden_zone_polygons(containers["actors"].get_parent())
@@ -317,11 +321,22 @@ func _polygon_centroid(polygon: PackedVector2Array) -> Vector2:
 	return total / float(polygon.size())
 
 
-func _select_spawn_anchor(specs: Array, unlocked_region_count: int) -> Dictionary:
-	var candidates := []
+func _select_spawn_anchor(specs: Array, unlocked_region_count: int, preferred_anchor_id: String = "") -> Dictionary:
+	var unlocked_candidates := []
+	var deepest_candidates := []
 	for spec in specs:
-		if int(spec.get("region_id", 1)) <= unlocked_region_count:
-			candidates.append(spec)
+		var region_id := int(spec.get("region_id", 1))
+		if region_id > unlocked_region_count:
+			continue
+		if preferred_anchor_id != "" and String(spec.get("id", "")) == preferred_anchor_id:
+			return spec
+		unlocked_candidates.append(spec)
+		if region_id == unlocked_region_count:
+			deepest_candidates.append(spec)
+
+	var candidates := deepest_candidates
+	if candidates.is_empty():
+		candidates = unlocked_candidates
 	if candidates.is_empty() and not specs.is_empty():
 		candidates.append(specs[0])
 	if candidates.is_empty():

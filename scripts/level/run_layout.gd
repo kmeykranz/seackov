@@ -13,13 +13,13 @@ const REGIONS := [
 ]
 
 const ANCHORS := [
-	{"id": "coral_north", "region_id": 1, "position": Vector2(8450, 1250)},
-	{"id": "coral_mid", "region_id": 1, "position": Vector2(9390, 3140)},
-	{"id": "coral_south", "region_id": 1, "position": Vector2(10020, 4840)},
-	{"id": "wreck_gate", "region_id": 2, "position": Vector2(7060, 1640)},
-	{"id": "wreck_basin", "region_id": 2, "position": Vector2(5480, 4320)},
-	{"id": "abyss_ridge", "region_id": 3, "position": Vector2(3180, 1320)},
-	{"id": "trench_core", "region_id": 4, "position": Vector2(880, 3120)},
+	{"id": "coral_north", "label": "珊瑚北缘", "region_id": 1, "position": Vector2(8450, 1250)},
+	{"id": "coral_mid", "label": "珊瑚浅滩", "region_id": 1, "position": Vector2(9390, 3140)},
+	{"id": "coral_south", "label": "珊瑚南缘", "region_id": 1, "position": Vector2(10020, 4840)},
+	{"id": "wreck_gate", "label": "沉船入口", "region_id": 2, "position": Vector2(7060, 1640)},
+	{"id": "wreck_basin", "label": "沉船盆地", "region_id": 2, "position": Vector2(5480, 4320)},
+	{"id": "abyss_ridge", "label": "深海平原", "region_id": 3, "position": Vector2(3180, 1320)},
+	{"id": "trench_core", "label": "遗迹断崖", "region_id": 4, "position": Vector2(880, 3120)},
 ]
 
 const REGION_POPULATION := {
@@ -36,7 +36,7 @@ const MONSTER_VARIANTS := [
 ]
 
 
-static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT) -> Dictionary:
+static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT, selected_spawn_anchor_id: String = "") -> Dictionary:
 	var clamped_count := clampi(unlocked_region_count, INITIAL_UNLOCKED_REGION_COUNT, REGIONS.size())
 	return {
 		"world_rect": WORLD_RECT,
@@ -44,9 +44,10 @@ static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT) ->
 		"unlocked_region_count": clamped_count,
 		"soft_boundary_x": soft_boundary_x_for_unlocked_count(clamped_count),
 		"soft_boundary_margin": SOFT_BOUNDARY_MARGIN,
-		"locked_region_rects": locked_region_rects_for_unlocked_count(clamped_count),
-		"anchors": ANCHORS.duplicate(true),
-		"chests": _generate_chests(),
+			"locked_region_rects": locked_region_rects_for_unlocked_count(clamped_count),
+			"anchors": ANCHORS.duplicate(true),
+			"selected_spawn_anchor_id": selected_spawn_anchor_id,
+			"chests": _generate_chests(),
 		"solid_cover": _generate_solid_cover(),
 		"seaweed": _generate_seaweed(),
 		"coral": _generate_coral(),
@@ -61,6 +62,22 @@ static func get_regions() -> Array:
 
 static func get_anchor_count() -> int:
 	return ANCHORS.size()
+
+
+static func get_anchor_specs_for_unlocked_count(unlocked_region_count: int) -> Array:
+	var clamped_count := clampi(unlocked_region_count, INITIAL_UNLOCKED_REGION_COUNT, REGIONS.size())
+	var result := []
+	for spec in ANCHORS:
+		if int(spec.get("region_id", 1)) <= clamped_count:
+			result.append(spec.duplicate(true))
+	return result
+
+
+static func get_anchor_label(anchor_id: String) -> String:
+	for spec in ANCHORS:
+		if String(spec.get("id", "")) == anchor_id:
+			return String(spec.get("label", anchor_id))
+	return anchor_id
 
 
 static func soft_boundary_x_for_unlocked_count(unlocked_region_count: int) -> float:

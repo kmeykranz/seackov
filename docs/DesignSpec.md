@@ -5,20 +5,22 @@ The run scene is a `Node2D` controlled by `RunSceneController`. It contains name
 
 The boat scene is a `Node2D` controlled by `BoatScene`. It contains a player diver and five interaction areas: dive hatch, mission console, purifier device, upload device, and warehouse. Interactions use the same `F` key prompt pattern as chests and the hatch.
 
-The storage transfer UI is a separate scene instanced into the run scene and the boat. In the run scene it shows only the backpack grid; in the boat scene it shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, stays centered in the viewport, shows the held stack next to the mouse cursor, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection. The run scene also instances a centered floating minimap UI that opens with `M` and draws only unlocked region bounds, available anchors, and the player marker.
+The storage transfer UI is a separate scene instanced into the run scene and the boat. In the run scene it shows only the backpack grid; in the boat scene it shows fixed backpack and warehouse grids, opens with `B` or the warehouse interaction, stays centered in the viewport, shows the held stack next to the mouse cursor, and uses Godot `Control._gui_input` mouse handling for Minecraft-like stack selection. The run scene also instances a centered floating minimap UI that opens with `M` and draws unlocked region bounds, available anchors, current story target markers, and the player marker.
 
 Player-facing UI text uses the same Chinese font family as the main menu where text is shown. Runtime messages are Chinese except keyboard key names and proper nouns.
 
 ## Module Responsibilities
-- `RunSceneController`: run state, score/haul accounting, extraction choices, run backpack/minimap/pause UI routing, region fog/soft-boundary refresh, collision death, and actor signal wiring.
+- `RunSceneController`: run state, score/haul accounting, extraction choices, run backpack/minimap/pause UI routing, region fog/soft-boundary refresh, terminal dialogue hosting, collision death, and actor signal wiring.
 - `RunToolSystem`: story knowledge discovery, unlocked tool selection, tool preparation, per-run uses, cooldowns, placeholder effects, and HUD tool status.
+- `RunStorySystem`: current-map story objective markers, `E` hold interactions, tunnel approach trigger, stage-completion visual effects, and objective HUD status.
 - `PlayerInventory`: runtime cross-scene backpack, warehouse, uploaded item records, research point accounting, and slot-level add/remove operations.
-- `ProgressState`: persistent region unlock count, uploaded legendary progress, pending/uploaded knowledge, unlocked tools, save/load, and debug mutation APIs.
-- `BoatScene`: boat interaction prompts, boat status HUD, and calls into `PlayerInventory`.
+- `ProgressState`: persistent story stage, region unlock count, uploaded legendary progress, signal/tunnel completion, final ending state, pending/uploaded knowledge, unlocked tools, save/load, and debug mutation APIs.
+- `BoatScene`: boat interaction prompts, boat status HUD, mission panel data binding, selected spawn-anchor persistence, and calls into `PlayerInventory`.
+- `MissionConsoleUi`: centered boat task panel, left-side task rows, right-side spawn-anchor buttons, and selected-anchor signal emission.
 - `StorageTransferUi`: backpack-only or backpack/warehouse panel visibility, slot refresh, hand-held stack state, cursor-following held item preview, and click operation routing.
 - `StorageSlot`: one clickable storage grid cell with an item icon and stack count.
 - `RunLayout`: explicit map bounds, region bounds, anchor specs, and deterministic full-map population specs for cover, coral, treasure, chests, and monster patrol routes.
-- `RunLevelBuilder`: scene instantiation from layout data into run scene containers, coral/seaweed/solid cover construction, segmented wall construction, and random unlocked-anchor spawn selection.
+- `RunLevelBuilder`: scene instantiation from layout data into run scene containers, coral/seaweed/solid cover construction, segmented wall construction, and deepest-unlocked-region spawn selection with saved-anchor override.
 - `PlayerDiver`: accelerated keyboard movement, dash boost, tool preparation movement modifiers, soft lock-boundary resistance, soft world-perimeter resistance, current facing direction, and whether the player is hidden.
 - `MonsterPatrol`: fixed waypoint patrol, chase recovery, front cone detection, collision discovery, and tool-applied stun/disarm/knockback/defeat effects.
 - `TreasurePickup`: rarity value and one-time collection.
@@ -42,13 +44,20 @@ Events:
 - `press_number`: Selects an unlocked run tool.
 - `press_q`: Starts tool preparation, instant equip, or hold-to-deploy behavior.
 - `release_q`: Completes prepared tools if ready, otherwise cancels and resets preparation.
+- `press_e`: Starts a story objective hold interaction when standing near a story marker.
+- `release_e`: Cancels a story objective hold interaction and resets progress if incomplete.
+- `terminal_press_e`: Starts terminal dismissal confirmation after the full text is visible.
+- `terminal_release_e`: Resets terminal dismissal confirmation if one second has not elapsed.
 - `player_x_changed`: recomputes the run depth filter from the player's x position.
 - `knowledge_discovered`: Records current-run story knowledge from mapped regions.
 - `knowledge_uploaded`: Unlocks the tool mapped to uploaded knowledge.
 - `treasure_collected`: Adds pickup value to carried haul and adds the item to backpack slots immediately.
 - `chest_opened`: Picks one weighted random reward and adds it to carried haul and backpack slots immediately.
-- `uploaded_legendary_changed`: Unlocks additional regions at every two uploaded legendary items.
+- `uploaded_legendary_changed`: repairs the purifier and opens region 2 after two uploaded legendary items.
+- `story_objective_completed`: signal tower and tunnel objectives can open later regions.
 - `progress_changed`: Refreshes locked-region fog and player soft boundary.
+- `mission_console_used`: opens the boat mission panel with task rows and spawn choices.
+- `spawn_anchor_selected`: saves an unlocked dive anchor or clears selection for default deepest-region random spawn.
 - `player_detected`: Clears carried haul and removes current-run carried counts from backpack slots.
 - `monster_collision`: `SEARCHING -> CAUGHT`, empties backpack, disables gameplay, and transitions to the failure scene.
 - `failure_return_selected`: transitions from the failure scene to the boat scene.
@@ -66,6 +75,7 @@ Guards:
 - Dash cannot restart while the dash cooldown is active.
 - Pause cannot return directly to the boat.
 - Tools cannot be used while paused, caught, extracted, out of uses, or on cooldown.
+- Story objectives cannot complete outside their active story stage.
 - Knowledge discovered in a failed run is not recorded as pending upload.
 
 Side Effects:
@@ -84,9 +94,10 @@ Side Effects:
 - Locked-region fog is rebuilt after progression changes.
 - The player is pushed rightward when crossing the active locked-region boundary, and also springs outward after releasing input inside the slowdown margin until roughly two body lengths outside the active boundary.
 - Segmented outer wall pieces are generated around the world perimeter, and the player receives inward soft-boundary force near those edges.
-- The minimap redraws after being opened or after progression changes.
+- The minimap redraws after being opened, after progression changes, or after story targets change.
 - Successful extraction moves current-run discovered knowledge into pending upload state.
 - Boat upload converts pending knowledge into unlocked tool ids.
+- Final escape extraction marks truth data as pending boat upload.
 
 Failure and Rollback Paths:
 - If detection happens with no carried treasure, state remains playable and no banked, warehouse, or uploaded treasure changes.
@@ -101,9 +112,10 @@ States:
 - `Region4Open`: all authored regions are open.
 
 Events:
-- `new_run_started`: chooses one random spawn anchor from open regions.
-- `legendary_uploaded`: increments and saves uploaded legendary progress.
-- `unlock_threshold_met`: opens one additional region at every two uploaded legendary items.
+- `new_run_started`: chooses one random spawn anchor from the deepest open region unless a saved selected anchor is valid.
+- `prism_threshold_met`: opens region 2 after two uploaded legendary items.
+- `signal_network_complete`: opens region 3.
+- `tunnel_repaired`: opens region 4.
 - `debug_reset_save`: resets to `Region1Open`.
 - `debug_unlock_next`: opens one additional region.
 
@@ -114,6 +126,43 @@ Guards:
 Side Effects:
 - Progress changes write to `user://seackov_progress.json`.
 - Lobby debug status text refreshes after edits.
+
+## Story Campaign State Machine
+States:
+- `prism_recovery`: fresh story state. The player must recover and upload two purple historical relic placeholders to repair the purifier.
+- `signal_tower`: region 2 is open and two signal tower deployment targets are visible.
+- `tunnel_repair`: region 3 is open, the boat mission panel can choose a saved dive anchor, and the tunnel approach trigger can reveal repair targets.
+- `ruins_investigation`: region 4 is open, with a black sphere and ruins terminal placeholder.
+- `final_escape`: truth data has been recovered and must be extracted once.
+- `ending_success`: final truth data has been uploaded on the boat.
+- `ending_failure`: the player died during final escape.
+
+Events:
+- `intro_finished`: marks the opening boat terminal sequence seen.
+- `prism_threshold_met`: `prism_recovery -> signal_tower`.
+- `signal_site_deployed`: records one signal tower.
+- `all_signal_sites_deployed`: `signal_tower -> tunnel_repair`.
+- `tunnel_approached`: shows hidden tunnel dialogue and reveals repair targets.
+- `tunnel_site_repaired`: records one tunnel repair.
+- `all_tunnel_sites_repaired`: `tunnel_repair -> ruins_investigation`.
+- `ruins_terminal_read`: `ruins_investigation -> final_escape`.
+- `final_extract`: truth data becomes pending upload.
+- `final_data_uploaded`: `final_escape -> ending_success`.
+- `final_death`: `final_escape -> ending_failure`.
+
+Guards:
+- Additional legendary uploads after purifier repair do not unlock deeper regions.
+- Signal deployment uses hold progress and resets on early release.
+- Tunnel repair targets are hidden until the tunnel approach trigger fires.
+- Success requires extraction first and boat upload second.
+
+Side Effects:
+- World-space story markers use colored rings, labels, and progress bars.
+- The minimap draws current story target markers using the active story target data.
+- Stage completion can show terminal dialogue, completion bursts, and a temporary clearing beam.
+- Terminal overlays allow fast-forward during typing, then show a hold-progress bar and require holding `E` for one second to close.
+- The failure page swaps to communication-loss copy only for `ending_failure`.
+- The success ending adds a black crystal placeholder to the boat player.
 
 ## Tool Unlock State Machine
 States:

@@ -3,6 +3,7 @@ extends SceneTree
 const RunSceneControllerScript := preload("res://scripts/game_controller.gd")
 const MonsterPatrolScript := preload("res://scripts/monster_patrol.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
+const TerminalIntroScript := preload("res://scenes/ui/terminal_intro.gd")
 const MAIN_MENU_FONT_PATH := "res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf"
 
 const ENTITY_SCENE_PATHS := [
@@ -18,6 +19,7 @@ const ENTITY_SCENE_PATHS := [
 	"res://scenes/props/chest_box.tscn",
 	"res://scenes/ui/run_hud.tscn",
 	"res://scenes/ui/storage_transfer_ui.tscn",
+	"res://scenes/ui/mission_console_ui.tscn",
 	"res://scenes/ui/minimap_ui.tscn",
 	"res://scenes/ui/pause_menu_ui.tscn",
 	"res://scenes/boat_scene.tscn",
@@ -43,6 +45,12 @@ func _run() -> void:
 	await _test_upload_progression_unlocks()
 	progress.reset_save()
 	inventory.reset_runtime_state()
+	await _test_story_campaign_system()
+	progress.reset_save()
+	inventory.reset_runtime_state()
+	await _test_terminal_hold_dismissal()
+	progress.reset_save()
+	inventory.reset_runtime_state()
 	await _test_run_tool_system()
 	progress.reset_save()
 	inventory.reset_runtime_state()
@@ -50,6 +58,7 @@ func _run() -> void:
 	await _test_monster_collision_death_opens_failure_scene()
 	progress.reset_save()
 	inventory.reset_runtime_state()
+	progress.mark_intro_seen()
 	var scene := load("res://scenes/run_scene.tscn")
 	_assert(scene != null, "run scene loads")
 	if scene == null:
@@ -88,17 +97,148 @@ func _test_upload_progression_unlocks() -> void:
 
 	progress.reset_save()
 	inventory.reset_runtime_state()
-	var expected_regions := [2, 3, 4]
-	for expected_region in expected_regions:
-		inventory.add_to_storage("backpack", "legendary", 2)
-		var upload_handled: bool = boat.perform_interaction("upload")
-		_assert(upload_handled, "boat upload handles legendary progression batch")
-		_assert(inventory.get_backpack_total_count() == 0, "upload progression batch clears backpack")
-		_assert(progress.get_unlocked_region_count() == expected_region, "uploaded legendary progression unlocks region %d" % expected_region)
+	inventory.add_to_storage("backpack", "legendary", 2)
+	var upload_handled: bool = boat.perform_interaction("upload")
+	_assert(upload_handled, "boat upload handles purifier repair batch")
+	_assert(inventory.get_backpack_total_count() == 0, "upload progression batch clears backpack")
+	_assert(progress.get_uploaded_legendary_count() == 2, "uploaded legendary progress records prism count")
+	_assert(progress.get_unlocked_region_count() == 2, "two uploaded legendary items unlock the middle region")
+	_assert(progress.get_story_stage() == "signal_tower", "two uploaded legendary items advance the story to signal towers")
 
-	_assert(progress.get_uploaded_legendary_count() == 6, "uploaded legendary progress is persisted through all region thresholds")
+	inventory.add_to_storage("backpack", "legendary", 4)
+	boat.perform_interaction("upload")
+	_assert(progress.get_uploaded_legendary_count() == 6, "additional uploaded legendary items remain recorded")
+	_assert(progress.get_unlocked_region_count() == 2, "additional legendary uploads do not skip signal and tunnel story gates")
 
 	boat.queue_free()
+	await process_frame
+
+
+func _test_story_campaign_system() -> void:
+	progress.add_uploaded_legendary_progress(2)
+	_assert(progress.get_story_stage() == "signal_tower", "purifier repair starts the signal tower stage")
+	_assert(progress.get_unlocked_region_count() == 2, "purifier repair opens the middle region")
+
+	var scene := load("res://scenes/run_scene.tscn")
+	_assert(scene != null, "run scene loads for story campaign")
+	if scene == null:
+		return
+
+	var story_run = scene.instantiate()
+	root.add_child(story_run)
+	current_scene = story_run
+	await process_frame
+	await physics_frame
+
+	var story_system = story_run.get_story_system()
+	_assert(story_system != null, "run story system is available")
+	_assert(story_system.has_target("signal_bridge"), "signal bridge deployment marker is visible")
+	_assert(story_system.has_target("signal_volcano"), "signal volcano deployment marker is visible")
+	_assert(story_run.get_node("RunHud/ObjectivePanel/MarginContainer/VBoxContainer/ObjectiveLabel").text.contains("目标"), "run HUD displays story objective status")
+	_assert(story_run.get_node("MiniMapUi").get_story_target_count() >= 2, "minimap shows active story target markers")
+
+	story_run.player.global_position = story_system.get_target_position("signal_bridge")
+	await process_frame
+	var e_press := InputEventKey.new()
+	e_press.keycode = KEY_E
+	e_press.pressed = true
+	var e_release := InputEventKey.new()
+	e_release.keycode = KEY_E
+	e_release.pressed = false
+	story_run._unhandled_input(e_press)
+	for _index in range(20):
+		await process_frame
+	story_run._unhandled_input(e_release)
+	_assert(not progress.is_signal_site_deployed("signal_bridge"), "releasing E early resets signal tower deployment")
+
+	story_run._unhandled_input(e_press)
+	for _index in range(520):
+		if progress.is_signal_site_deployed("signal_bridge"):
+			break
+		await process_frame
+	_assert(progress.is_signal_site_deployed("signal_bridge"), "holding E completes signal tower deployment")
+	story_system.complete_target("signal_volcano")
+	_assert(progress.get_story_stage() == "tunnel_repair", "both signal towers advance the story to tunnel repair")
+	_assert(progress.get_unlocked_region_count() == 3, "signal tower network opens the deep region")
+	await _assert_default_spawn_uses_deepest_unlocked_region(3)
+	await _assert_selected_spawn_anchor_override("coral_mid")
+
+	story_run.player.global_position = story_system.get_target_position("tunnel_arrival")
+	await process_frame
+	await process_frame
+	_assert(progress.has_story_event("tunnel_arrived"), "approaching the tunnel triggers hidden story dialogue")
+	_assert(story_system.has_target("tunnel_west"), "tunnel repair markers appear after the hidden dialogue trigger")
+	story_system.complete_target("tunnel_west")
+	story_system.complete_target("tunnel_core")
+	story_system.complete_target("tunnel_east")
+	_assert(progress.get_story_stage() == "ruins_investigation", "repairing all tunnel sites opens the ruins objective")
+	_assert(progress.get_unlocked_region_count() == 4, "tunnel repair opens the ruins region")
+	_assert(story_system.has_target("ruins_terminal"), "ruins terminal marker is visible")
+
+	story_system.complete_target("ruins_terminal")
+	_assert(progress.is_final_escape_active(), "reading the ruins terminal starts final escape")
+	story_run.run_state = RunSceneControllerScript.RunState.ANCHOR_PROMPT
+	story_run.player_on_anchor = true
+	story_run.choose_extract()
+	for _index in range(5):
+		await process_frame
+	_assert(progress.has_final_data_pending(), "extracting during final escape carries truth data to the boat")
+
+	var boat = current_scene
+	_assert(boat != null and boat.name == "BoatScene", "final extraction returns to the boat")
+	if boat != null:
+		boat.perform_interaction("upload")
+		_assert(progress.get_story_ending() == "success", "uploading final data records the success ending")
+		_assert(boat.has_node("World/PlayerDiver/StoryCrystal"), "success ending shows the black crystal placeholder on the player")
+		boat.queue_free()
+		if current_scene == boat:
+			current_scene = null
+	await process_frame
+
+	progress.reset_save()
+	progress.add_uploaded_legendary_progress(2)
+	progress.deploy_signal_site("signal_bridge")
+	progress.deploy_signal_site("signal_volcano")
+	progress.mark_story_event("tunnel_arrived")
+	progress.repair_tunnel_site("tunnel_west")
+	progress.repair_tunnel_site("tunnel_core")
+	progress.repair_tunnel_site("tunnel_east")
+	progress.start_final_escape()
+	progress.mark_final_failure()
+	var fail_scene = load("res://scenes/ui/fail.tscn").instantiate()
+	root.add_child(fail_scene)
+	await process_frame
+	_assert(fail_scene.get_node("title").text == "通讯中断", "final escape death uses the story failure title")
+	_assert(fail_scene.get_node("reason").text.contains("信号丢失"), "final escape death uses the story failure terminal copy")
+	fail_scene.queue_free()
+	await process_frame
+
+
+func _test_terminal_hold_dismissal() -> void:
+	var terminal: TerminalIntro = TerminalIntroScript.new()
+	terminal.configure("测试剧情文字", "终端")
+	root.add_child(terminal)
+	await process_frame
+
+	terminal._input(_key_event(KEY_SPACE, true))
+	await process_frame
+	_assert(terminal.is_dismiss_progress_visible(), "terminal dismissal progress bar is visible after full text")
+	var dismiss_bar: ProgressBar = terminal.get_node("DismissProgress")
+	_assert(dismiss_bar.size.y <= 16.0 and dismiss_bar.size.x >= 240.0, "terminal dismissal progress bar stays as a compact horizontal bar")
+	terminal._input(_key_event(KEY_E, true))
+	terminal._input(_key_event(KEY_E, false))
+	await process_frame
+	_assert(is_instance_valid(terminal) and not terminal.is_queued_for_deletion(), "short E press does not dismiss terminal text")
+	_assert(is_zero_approx(terminal.get_dismiss_hold_progress()), "short E press leaves terminal dismissal progress empty")
+
+	terminal._input(_key_event(KEY_E, true))
+	await create_timer(0.35).timeout
+	_assert(is_instance_valid(terminal) and terminal.get_dismiss_hold_progress() > 0.1, "holding E fills terminal dismissal progress")
+	await create_timer(1.4).timeout
+	await process_frame
+	_assert(not is_instance_valid(terminal) or terminal.is_queued_for_deletion(), "holding E dismisses terminal text")
+	if is_instance_valid(terminal):
+		terminal.queue_free()
 	await process_frame
 
 
@@ -278,6 +418,7 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.player.has_node("BodyPivot"), "player placeholder art exists")
 	_assert(game.player.position.y >= 250.0, "player starts below the HUD area")
 	_assert_uses_main_menu_font(game.get_node("RunHud/StatusPanel/MarginContainer/StatusLabel"), "run HUD uses the main menu Chinese font")
+	_assert_uses_main_menu_font(game.get_node("RunHud/ObjectivePanel/MarginContainer/VBoxContainer/ObjectiveLabel"), "run objective HUD uses the main menu Chinese font")
 	_assert_uses_main_menu_font(game.get_node("StorageTransferUi/Panel/MarginContainer/VBoxContainer/Header/TitleLabel"), "storage UI uses the main menu Chinese font")
 	_assert_uses_main_menu_font(game.get_node("MiniMapUi/Panel/MarginContainer/VBoxContainer/Header/TitleLabel"), "minimap UI uses the main menu Chinese font")
 	_assert_uses_main_menu_font(game.get_node("PauseMenuUi/Panel/MarginContainer/VBoxContainer/TitleLabel"), "pause UI uses the main menu Chinese font")
@@ -546,10 +687,14 @@ func _test_inventory_and_boat_scene() -> void:
 	_assert(boat.has_node("World/Warehouse"), "boat has warehouse")
 	_assert(boat.has_node("BoatHud/Panel/InventoryLabel"), "boat inventory HUD exists")
 	_assert(boat.has_node("StorageTransferUi"), "boat storage transfer UI exists")
+	_assert(boat.has_node("MissionConsoleUi"), "boat mission console UI exists")
 	_assert_uses_main_menu_font(boat.get_node("BoatHud/Panel/InventoryLabel"), "boat HUD uses the main menu Chinese font")
+	_assert_uses_main_menu_font(boat.get_node("MissionConsoleUi/Panel/MarginContainer/VBoxContainer/Header/TitleLabel"), "boat mission UI uses the main menu Chinese font")
 
 	var storage_ui = boat.get_node("StorageTransferUi")
+	var mission_ui = boat.get_node("MissionConsoleUi")
 	_assert(not boat.is_storage_ui_open(), "storage UI starts closed")
+	_assert(not boat.is_mission_ui_open(), "mission UI starts closed")
 
 	var b_key := InputEventKey.new()
 	b_key.keycode = KEY_B
@@ -618,6 +763,31 @@ func _test_inventory_and_boat_scene() -> void:
 	_assert(inventory.research_points == 325, "upload adds research points")
 	_assert(progress.is_tool_unlocked("toxin_net"), "uploading recovered knowledge unlocks its mapped tool")
 	_assert(boat.get_node("BoatHud/Panel/InventoryLabel").text.contains("研究点：325"), "boat HUD shows research points")
+
+	progress.reset_save()
+	progress.mark_intro_seen()
+	var mission_handled: bool = boat.perform_interaction("mission")
+	_assert(mission_handled, "boat mission interaction is handled")
+	_assert(boat.is_mission_ui_open(), "mission interaction opens the task panel")
+	_assert(mission_ui.get_task_count() >= 5, "mission panel shows the task list")
+	_assert(mission_ui.get_spawn_option_count() == 3, "locked mission panel previews first-region spawn anchors")
+	_assert(not boat.select_mission_spawn_anchor("coral_mid"), "spawn selection is locked before signal tower completion")
+	_assert(progress.get_selected_spawn_anchor_id() == "", "locked mission panel does not change selected spawn")
+
+	progress.add_uploaded_legendary_progress(2)
+	progress.deploy_signal_site("signal_bridge")
+	progress.deploy_signal_site("signal_volcano")
+	boat.perform_interaction("mission")
+	await process_frame
+	_assert(mission_ui.get_spawn_option_count() == 6, "mission panel lists all unlocked spawn anchors after region three opens")
+	_assert(boat.select_mission_spawn_anchor("abyss_ridge"), "mission panel can select an unlocked spawn anchor")
+	await process_frame
+	_assert(progress.get_selected_spawn_anchor_id() == "abyss_ridge", "mission panel writes the selected spawn anchor")
+	_assert(boat.get_node("BoatHud/Panel/MessageLabel").text.contains("深海平原"), "mission panel selection updates boat status text")
+	_assert(mission_ui.get_spawn_option_count() == 6, "mission panel refreshes after selecting an anchor")
+	_assert(boat.select_mission_spawn_anchor(""), "mission panel can restore default deepest-region random spawn")
+	await process_frame
+	_assert(progress.get_selected_spawn_anchor_id() == "", "mission panel clears selected spawn anchor for default spawn")
 
 	boat.queue_free()
 	if current_scene == boat:
@@ -691,6 +861,47 @@ func _test_lobby_debug_controls() -> void:
 
 	lobby.queue_free()
 	await process_frame
+
+
+func _assert_default_spawn_uses_deepest_unlocked_region(expected_region_id: int) -> void:
+	progress.set_selected_spawn_anchor_id("")
+	var scene := load("res://scenes/run_scene.tscn")
+	var spawn_run = scene.instantiate()
+	root.add_child(spawn_run)
+	await process_frame
+	await physics_frame
+
+	_assert(_anchor_region_id(spawn_run.spawn_anchor_id) == expected_region_id, "default spawn uses the deepest unlocked region")
+	spawn_run.queue_free()
+	await process_frame
+
+
+func _assert_selected_spawn_anchor_override(anchor_id: String) -> void:
+	progress.set_selected_spawn_anchor_id(anchor_id)
+	var scene := load("res://scenes/run_scene.tscn")
+	var spawn_run = scene.instantiate()
+	root.add_child(spawn_run)
+	await process_frame
+	await physics_frame
+
+	_assert(spawn_run.spawn_anchor_id == anchor_id, "manual selected spawn anchor overrides deepest-region default")
+	spawn_run.queue_free()
+	progress.set_selected_spawn_anchor_id("")
+	await process_frame
+
+
+func _anchor_region_id(anchor_id: String) -> int:
+	for spec in RunLayout.get_anchor_specs_for_unlocked_count(4):
+		if String(spec.get("id", "")) == anchor_id:
+			return int(spec.get("region_id", 0))
+	return 0
+
+
+func _key_event(keycode: int, pressed: bool) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = keycode
+	event.pressed = pressed
+	return event
 
 
 func _count_specs_in_region(specs: Array, region_id: int) -> int:

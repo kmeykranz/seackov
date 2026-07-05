@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://e51xe1g2m4p5" path="res://scenes/actors/player_diver.tscn" id="2_xm3pv"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_font"]
 [ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="4_storage"]
+[ext_resource type="PackedScene" path="res://scenes/ui/mission_console_ui.tscn" id="5_mission"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_manhole"]
 radius = 58.0
@@ -310,3 +311,5 @@ theme_override_font_sizes/font_size = 20
 text = "返回主菜单"
 
 [node name="StorageTransferUi" parent="." unique_id=1144098437 instance=ExtResource("4_storage")]
+
+[node name="MissionConsoleUi" parent="." instance=ExtResource("5_mission")]

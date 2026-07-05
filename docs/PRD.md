@@ -1,13 +1,14 @@
 # PRD - Single Underwater Run
 
 ## Objective
-Implement one underwater run where the player collects recovered objects, avoids a patrolling monster, extracts at an anchor, and can inspect/store/upload recovered items on a debug-accessible boat scene.
+Implement one underwater run where the player collects recovered objects, avoids patrol monsters, extracts at an anchor, handles recovered items on the boat, and advances a persistent visual story campaign across the current map.
 
 ## Functional Requirements
 - The game starts in the main menu.
-- The main menu can start the run scene.
+- The main menu starts the boat scene, and the boat dive hatch enters the run scene.
 - The main menu includes a temporary debug entry for the boat scene.
 - The main menu includes debug save controls for resetting progression, adding uploaded legendary progress, unlocking the next region, and locking back to the start.
+- A fresh save starts in the boat scene, disables player control, shakes the camera, and plays the opening terminal briefing.
 - The player moves in 2D using keyboard input with smooth acceleration and deceleration.
 - Pressing `Space` performs a short dash that gives an impulse and temporarily raises the maximum speed before curving back to normal movement.
 - The map is bounded by segmented wall pieces and contains solid cover, coral cover, and seaweed hiding zones.
@@ -17,12 +18,21 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Seaweed, coral, treasures, chests, and monsters populate the full authored map.
 - Lower-x regions contain more chests, more monsters, and a more valuable treasure mix.
 - A fresh save unlocks only the rightmost map region.
-- Each run starts at a random anchor from unlocked regions.
+- Each run starts at a random anchor in the deepest unlocked region unless the player has manually selected an unlocked dive anchor.
 - The selected spawn anchor is hidden and cannot be used for extraction in that run.
 - Locked regions are hidden by fog and guarded by an elastic soft boundary that slows the player and rebounds them to roughly two body lengths outside the active boundary.
 - The outer map perimeter also slows the player near the edge and pushes the player back inward.
-- Pressing `M` in the run scene opens or closes a floating minimap showing full unlocked regions.
-- Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks one more region until the authored regions are open.
+- Pressing `M` in the run scene opens or closes a floating minimap showing full unlocked regions and current story target markers.
+- Uploading two legendary items repairs the purifier, advances the story to signal tower deployment, and unlocks the second region permanently.
+- Additional legendary uploads do not unlock deeper regions by themselves.
+- Two visible signal tower targets appear on the current map and require holding `E` to deploy; releasing early resets progress.
+- Deploying both signal towers unlocks the third region and enables a boat mission panel with task rows on the left and unlocked dive-anchor selection on the right.
+- Approaching the tunnel target triggers hidden terminal dialogue and exposes tunnel repair markers.
+- Repairing all tunnel markers unlocks the fourth region and exposes a ruins terminal plus black sphere placeholder.
+- Reading the ruins terminal starts final escape with truth data.
+- Story terminal text can be fast-forwarded while typing, but after the full text is visible it shows a hold-progress bar and only closes after holding `E` for one second.
+- During final escape, death records a story failure ending and extraction marks final data as pending boat upload.
+- Uploading final data on the boat records the success ending and shows a black crystal placeholder on the player.
 - Entering mapped story regions discovers knowledge, but knowledge only unlocks tools after successful extraction and boat upload.
 - The run HUD shows selected tool, uses, cooldown, and preparation progress.
 - Number keys select unlocked tools, and holding `Q` prepares or deploys the selected tool.
@@ -49,6 +59,7 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Continuing closes the prompt and keeps the run active.
 - The boat scene includes a dive hatch that can enter the run scene for testing.
 - The boat scene includes a mission console, purifier device, upload device, and warehouse interaction area.
+- Interacting with the boat mission console opens a centered mission panel; before signal tower completion it previews locked spawn choices, and after signal tower completion it can save an unlocked dive anchor or restore default deepest-region random spawn.
 - Pressing `B` in the boat scene opens or closes the backpack and warehouse grid storage UI.
 - Interacting with the warehouse opens the same storage UI.
 - Storage slots show item icons and stack counts.
@@ -66,7 +77,7 @@ Implement one underwater run where the player collects recovered objects, avoids
 - Keep future exploration expansion data-driven enough to adjust bounds, obstacles, and spawns without changing actor behavior.
 
 ## Exclusions
-- No full ship-to-run campaign routing.
+- No final campaign art or fully authored biome scenes beyond current-map placeholders.
 - No full save-game system beyond the small progression save.
 - No combat or player attack.
 - No new inventory capacity rules beyond the existing fixed prototype grid.

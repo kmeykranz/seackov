@@ -6,6 +6,9 @@ signal extract_pressed
 @onready var message_label: Label = $MessagePanel/MarginContainer/MessageLabel
 @onready var tool_label: Label = $ToolPanel/MarginContainer/VBoxContainer/ToolLabel
 @onready var tool_hint_label: Label = $ToolPanel/MarginContainer/VBoxContainer/ToolHintLabel
+@onready var objective_label: Label = $ObjectivePanel/MarginContainer/VBoxContainer/ObjectiveLabel
+@onready var objective_hint_label: Label = $ObjectivePanel/MarginContainer/VBoxContainer/ObjectiveHintLabel
+@onready var objective_progress: ProgressBar = $ObjectivePanel/MarginContainer/VBoxContainer/ObjectiveProgress
 @onready var anchor_prompt: PanelContainer = $AnchorPrompt
 @onready var prompt_label: Label = $AnchorPrompt/MarginContainer/VBoxContainer/PromptLabel
 @onready var extract_button: Button = $AnchorPrompt/MarginContainer/VBoxContainer/ExtractButton
@@ -39,6 +42,14 @@ func show_message(text: String) -> void:
 func update_tool_status(title: String, hint: String) -> void:
 	tool_label.text = title
 	tool_hint_label.text = hint
+
+
+func update_objective_status(title: String, hint: String, progress_value: float = -1.0) -> void:
+	objective_label.text = "目标：%s" % title
+	objective_hint_label.text = hint
+	objective_progress.visible = progress_value >= 0.0
+	if objective_progress.visible:
+		objective_progress.value = clampf(progress_value, 0.0, 1.0) * 100.0
 
 
 func show_anchor_prompt(carried_value: int) -> void:

@@ -1,12 +1,13 @@
 # Acceptance
 
 ## Current Goal
-Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a persistent region progression loop, a debug-accessible boat scene, a minimal runtime backpack loop, and a usable placeholder tool system.
+Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a persistent visual story campaign, a debug-accessible boat scene, a minimal runtime backpack loop, and a usable placeholder tool system.
 
 ## Acceptance Criteria
-- The project launches into the main menu, and `开始下潜` enters one underwater run scene.
+- The project launches into the main menu, and `开始下潜` enters the boat scene before the player uses the dive hatch to enter one underwater run scene.
 - The main menu includes a temporary debug button that enters the boat scene.
 - The main menu includes a debug save menu that can reset progression, add uploaded legendary progress, unlock the next region, and lock progression back to the starting region.
+- A fresh save starts on the boat, disables player control, shakes the camera, then plays the opening terminal briefing.
 - Codex has both `godot-ai` and `godot-mcp` MCP servers configured for the local Godot editor bridges.
 - The run scene contains visible player, treasure, cover, coral, monster vision, HUD placeholder art, pause menu, and a backpack-only inventory UI.
 - Player, monster, treasure, chest, anchor, solid cover, seaweed cover, coral cover, HUD, and pause menu are separate scenes instantiated into the run scene.
@@ -18,12 +19,21 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Seaweed, coral, treasures, chests, and monsters are distributed across the full authored map, not only the starting region.
 - Lower-x regions contain more chests, denser monsters, and a more valuable treasure mix than the rightmost starting region.
 - A fresh save starts with only the rightmost map region unlocked.
-- The run starts at a random authored anchor from unlocked regions.
+- Without a manually selected dive anchor, the run starts at a random authored anchor in the deepest unlocked region; a manually selected unlocked anchor overrides this default.
 - The selected spawn anchor is not visible and cannot be used for extraction in that run.
 - Locked regions are covered by fog and blocked by an elastic soft boundary that slows the player and rebounds them to roughly two body lengths outside the active boundary instead of using a hard wall.
 - The outer map boundary is built from visible segmented wall pieces, and approaching the boundary slows and pushes the player back inward.
-- Pressing `M` in the run scene opens or closes a floating minimap that shows the full unlocked regions.
-- Uploading two legendary items unlocks the second region permanently; each additional two uploaded legendary items unlocks the next region until all authored regions are open.
+- Pressing `M` in the run scene opens or closes a floating minimap that shows the full unlocked regions and current story target markers.
+- Uploading two legendary items repairs the purifier, advances the story to signal tower deployment, and unlocks the second region permanently.
+- Additional legendary uploads do not unlock deeper regions by themselves.
+- Two visible signal tower targets appear in the second region and require holding `E`; releasing early resets deployment progress.
+- Deploying both signal towers unlocks the third region and enables a boat mission panel with task rows on the left and unlocked dive-anchor selection on the right.
+- Approaching the tunnel target in the third region triggers hidden terminal dialogue and exposes tunnel repair markers.
+- Repairing all tunnel markers unlocks the fourth region and exposes the ruins terminal plus black sphere placeholder.
+- Reading the ruins terminal starts final escape and changes the active objective to extract with truth data.
+- Story terminal text can be fast-forwarded while typing, but after the full text is visible it shows a hold-progress bar and only closes after holding `E` for one second.
+- Dying during final escape records the story failure ending and the failure scene shows the communication-loss copy.
+- Extracting during final escape marks final data as pending upload; uploading it on the boat records the success ending and shows a black crystal placeholder on the player.
 - Entering mapped story regions can discover knowledge, but knowledge only unlocks tools after the player extracts successfully and uploads it on the boat.
 - The run HUD shows the selected tool, remaining uses, cooldown, and preparation progress.
 - Number keys select unlocked tools, and holding `Q` prepares or deploys the selected tool.
@@ -46,6 +56,7 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Choosing extraction at the anchor banks all carried treasure, keeps recovered items already in the cross-scene backpack without duplicating them, and returns to the boat scene.
 - Choosing continue at the anchor hides the prompt and keeps the run playable.
 - The boat scene contains a dive hatch, mission console, purifier device, upload device, and warehouse interaction areas.
+- Interacting with the boat mission console opens a centered mission panel; before signal tower completion it previews locked spawn choices, and after signal tower completion it can save an unlocked dive anchor or restore default deepest-region random spawn.
 - Pressing `B` in the boat scene opens or closes a grid storage UI showing backpack and warehouse slots.
 - Interacting with the warehouse opens the storage UI.
 - Storage slots show item icons and stack counts.
@@ -57,7 +68,7 @@ Deliver a playable underwater treasure extraction prototype in Godot 4.7 with a 
 - Different item types cannot merge into the same grid slot; left-click swaps them instead.
 - The upload device can move all backpack items into uploaded records and increase research points.
 - The warehouse UI can receive item stacks from backpack click operations and can send them back.
-- The implementation has a headless acceptance test covering scene loading, map population distribution, depth filter plateau and boundary transition, Chinese UI font use, centered floating panels, story knowledge upload, tool unlocks, all six placeholder tool effects, treasure collection, region progression, minimap UI, pause UI, run backpack UI, random chest rewards, sight penalty, monster collision death, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, debug save controls, and scene split structure.
+- The implementation has a headless acceptance test covering scene loading, map population distribution, depth filter plateau and boundary transition, Chinese UI font use, centered floating panels, opening/story progression gates, story minimap target markers, terminal hold-to-dismiss behavior, mission panel spawn selection, signal tower hold/reset behavior, tunnel repair, ruins terminal, success/failure endings, story knowledge upload, tool unlocks, all six placeholder tool effects, treasure collection, minimap UI, pause UI, run backpack UI, random chest rewards, sight penalty, monster collision death, anchor extraction, boat inventory transfer, boat scene structure, monster vision guards, debug save controls, and scene split structure.
 
 ## Completion Measurement
 Completion is measured by the criteria above. This prototype is complete when all criteria pass in local Godot 4.7 validation.

@@ -74,6 +74,42 @@ theme_override_font_sizes/font_size = 25
 text = "探索并上传知识后解锁。"
 autowrap_mode = 3
 
+[node name="ObjectivePanel" type="PanelContainer" parent="." unique_id=1358210221]
+offset_left = 1350.0
+offset_top = 188.0
+offset_right = 1894.0
+offset_bottom = 356.0
+
+[node name="MarginContainer" type="MarginContainer" parent="ObjectivePanel" unique_id=574991031]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ObjectivePanel/MarginContainer" unique_id=1743051277]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ObjectiveLabel" type="Label" parent="ObjectivePanel/MarginContainer/VBoxContainer" unique_id=1797766201]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 25
+text = "目标：回收棱晶"
+
+[node name="ObjectiveHintLabel" type="Label" parent="ObjectivePanel/MarginContainer/VBoxContainer" unique_id=673030481]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("2_font")
+theme_override_font_sizes/font_size = 23
+text = "回收并上传 2 个紫色历史遗物。"
+autowrap_mode = 3
+
+[node name="ObjectiveProgress" type="ProgressBar" parent="ObjectivePanel/MarginContainer/VBoxContainer" unique_id=1964208729]
+visible = false
+layout_mode = 2
+max_value = 100.0
+show_percentage = false
+
 [node name="AnchorPrompt" type="PanelContainer" parent="." unique_id=12479146]
 anchors_preset = 8
 anchor_left = 0.5

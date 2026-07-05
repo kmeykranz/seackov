@@ -16,7 +16,7 @@ States:
 
 Events:
 - `build_layout`: converts region profiles into generated specs.
-- `new_run_started`: uses the generated specs and chooses one unlocked anchor as spawn.
+- `new_run_started`: uses the generated specs and chooses a spawn anchor from the deepest unlocked region unless a saved selected anchor is valid.
 
 Guards:
 - The authored anchor count remains exactly seven.

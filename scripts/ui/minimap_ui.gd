@@ -23,6 +23,10 @@ func set_run_state(unlocked_region_count: int, anchors: Array, spawn_anchor_id: 
 	_map_view.set_run_state(unlocked_region_count, anchors, spawn_anchor_id, player)
 
 
+func set_story_targets(targets: Array) -> void:
+	_map_view.set_story_targets(targets)
+
+
 func open_panel() -> void:
 	_panel.visible = true
 	refresh()
@@ -51,3 +55,7 @@ func refresh() -> void:
 
 func get_visible_region_count() -> int:
 	return _map_view.get_visible_region_count()
+
+
+func get_story_target_count() -> int:
+	return _map_view.get_story_target_count()

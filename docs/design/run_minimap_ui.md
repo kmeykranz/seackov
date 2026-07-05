@@ -1,7 +1,7 @@
 # Run Minimap UI Design
 
 ## Problem Definition
-The player needs a floating minimap during a run. It should open with `M`, close with `M`, and show the full map of unlocked regions without exposing locked regions.
+The player needs a floating minimap during a run. It should open with `M`, close with `M`, show the full map of unlocked regions without exposing locked regions, and mark the currently active story target positions.
 
 ## Options Considered
 - Draw the minimap directly in `RunSceneController`: rejected because the controller already owns run state, anchors, fog, and inventory routing.
@@ -11,20 +11,22 @@ The player needs a floating minimap during a run. It should open with `M`, close
 ## State Machine
 States:
 - `Closed`: minimap panel is hidden.
-- `Open`: minimap panel is visible and draws unlocked region bounds, available extraction anchors, and the player position.
+- `Open`: minimap panel is visible and draws unlocked region bounds, available extraction anchors, current story targets, and the player position.
 
 Events:
 - `press_m`: toggles between `Closed` and `Open`.
 - `progress_changed`: redraws the minimap with the new unlocked region count.
+- `story_targets_changed`: redraws the minimap with the current story target markers.
 - `player_moved`: redraws player marker on refresh.
 
 Guards:
 - Locked regions are not drawn as explored map space.
 - The spawn anchor is not drawn because it is not an extraction point in the current run.
+- Story targets are drawn only when the story system currently exposes them.
 - The minimap does not mutate progress or inventory state.
 
 Side Effects:
-- The run scene passes layout metadata, current player, anchors, and spawn anchor data into the minimap.
+- The run scene passes layout metadata, current player, anchors, spawn anchor data, and story target data into the minimap.
 - The minimap control redraws when opened or refreshed.
 
 Failure Paths
@@ -38,4 +40,5 @@ Remove `scenes/ui/minimap_ui.tscn`, `scripts/ui/minimap_ui.gd`, the `MiniMapUi` 
 - Pressing `M` in the run scene opens a floating minimap panel.
 - Pressing `M` again closes the minimap panel.
 - The minimap reports/draws only unlocked regions.
+- Current story targets appear as distinct minimap markers.
 - Unlocking a region updates the minimap's unlocked region count.

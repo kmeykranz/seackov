@@ -1,11 +1,19 @@
 extends Control
 
+const FONT_PATH := "res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf"
+
 var world_rect: Rect2
 var regions: Array = []
 var unlocked_region_count: int = 1
 var anchors: Array = []
 var spawn_anchor_id: String = ""
 var player: Node2D
+var story_targets: Array = []
+var _font: Font
+
+
+func _ready() -> void:
+	_font = load(FONT_PATH)
 
 
 func configure(new_world_rect: Rect2, new_regions: Array) -> void:
@@ -22,12 +30,21 @@ func set_run_state(new_unlocked_region_count: int, new_anchors: Array, new_spawn
 	queue_redraw()
 
 
+func set_story_targets(new_targets: Array) -> void:
+	story_targets = new_targets.duplicate(true)
+	queue_redraw()
+
+
 func get_visible_region_count() -> int:
 	var count := 0
 	for region in regions:
 		if int(region.get("id", 0)) <= unlocked_region_count:
 			count += 1
 	return count
+
+
+func get_story_target_count() -> int:
+	return story_targets.size()
 
 
 func _draw() -> void:
@@ -54,6 +71,12 @@ func _draw() -> void:
 			continue
 		var anchor_pos := _world_to_map(anchor.global_position, unlocked_bounds)
 		draw_circle(anchor_pos, 5.0, Color(1.0, 0.22, 0.24, 0.95))
+
+	for target in story_targets:
+		var target_position: Vector2 = target.get("position", Vector2.ZERO)
+		if _region_id_for_position(target_position) > unlocked_region_count:
+			continue
+		_draw_story_target(target, _world_to_map(target_position, unlocked_bounds))
 
 	if player != null:
 		draw_circle(_world_to_map(player.global_position, unlocked_bounds), 6.0, Color(1.0, 0.9, 0.24, 1.0))
@@ -89,3 +112,27 @@ func _world_to_map(world_position: Vector2, bounds: Rect2) -> Vector2:
 		(world_position.y - bounds.position.y) / bounds.size.y
 	)
 	return Vector2(padding, padding) + normalized * drawable
+
+
+func _draw_story_target(target: Dictionary, map_position: Vector2) -> void:
+	var color: Color = target.get("color", Color(0.86, 0.98, 1.0, 1.0))
+	var radius := 9.0 if bool(target.get("active", false)) else 7.0
+	var points := PackedVector2Array([
+		map_position + Vector2(0.0, -radius),
+		map_position + Vector2(radius, 0.0),
+		map_position + Vector2(0.0, radius),
+		map_position + Vector2(-radius, 0.0),
+	])
+	draw_colored_polygon(points, Color(0.02, 0.02, 0.02, 0.92))
+	draw_polyline(PackedVector2Array([points[0], points[1], points[2], points[3], points[0]]), color, 2.0)
+	draw_circle(map_position, maxf(2.5, radius * 0.34), color)
+	if _font != null:
+		var label := String(target.get("label", "剧情目标"))
+		draw_string(_font, map_position + Vector2(radius + 5.0, 4.0), label, HORIZONTAL_ALIGNMENT_LEFT, 150.0, 13, Color(0.88, 1.0, 0.96, 0.96))
+
+
+func _region_id_for_position(world_position: Vector2) -> int:
+	for region in regions:
+		if world_position.x >= float(region["x_min"]) and world_position.x <= float(region["x_max"]):
+			return int(region["id"])
+	return 0

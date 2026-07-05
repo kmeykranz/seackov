@@ -250,6 +250,10 @@ func flush_recovered_knowledge() -> Array[String]:
 	return recovered
 
 
+func scan_current_region() -> void:
+	_discover_current_region_knowledge()
+
+
 func _process(delta: float) -> void:
 	_update_cooldowns(delta)
 	_update_preparation(delta)
@@ -279,7 +283,7 @@ func _update_preparation(delta: float) -> void:
 
 
 func _discover_current_region_knowledge() -> void:
-	if player == null or progress == null:
+	if player == null:
 		return
 
 	var region_id := _region_id_for_x(player.global_position.x)
@@ -289,9 +293,10 @@ func _discover_current_region_knowledge() -> void:
 	for knowledge_id in REGION_KNOWLEDGE[region_id]:
 		if _run_knowledge_ids.has(knowledge_id):
 			continue
-		if progress.has_method("has_knowledge") and progress.has_knowledge(knowledge_id):
+		if progress != null and progress.has_method("has_knowledge") and progress.has_knowledge(knowledge_id):
 			continue
 		_run_knowledge_ids.append(knowledge_id)
+		_spawn_marker(player.global_position, 170.0, Color(0.15, 0.9, 1.0, 0.28), 0.55)
 		_emit_message("获得知识：%s。成功撤离并上传后可解锁相关道具。" % _knowledge_label(knowledge_id))
 	_update_hud()
 
