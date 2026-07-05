@@ -52,7 +52,7 @@ func _ready() -> void:
 
 
 func _on_start_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/run_scene.tscn")
+	get_tree().change_scene_to_file("res://scenes/boat_scene.tscn")
 
 
 func _on_boat_debug_pressed() -> void:

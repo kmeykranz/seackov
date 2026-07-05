@@ -10,6 +10,7 @@ const ACTION_PURIFIER := "purifier"
 const ACTION_MISSION := "mission"
 
 var _transitioning: bool = false
+var _intro_active: bool = false
 var _available_actions: Array[String] = []
 var _hull_world_polygon: PackedVector2Array
 var _player_last_safe_pos: Vector2
@@ -55,13 +56,19 @@ func _ready() -> void:
 
 	_back_button.pressed.connect(_on_back_to_menu_pressed)
 	_storage_ui.storage_changed.connect(_on_storage_changed)
+
+	var progress = _progress()
+	if progress != null and not progress.has_seen_intro:
+		_start_intro_sequence()
+		return
+
 	_refresh_prompts()
 	_update_inventory_status()
 	_show_message("船舱待命：查看任务，处理背包物品，或从下潜口进入海底。")
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if _transitioning:
+	if _transitioning or _intro_active:
 		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
@@ -114,6 +121,8 @@ func _configure_player_collision() -> void:
 
 
 func _process(_delta: float) -> void:
+	if _intro_active:
+		return
 	# _process 在 _physics_process 之后运行，确保 move_and_slide 已执行完毕
 	var player := $World/PlayerDiver
 	if Geometry2D.is_point_in_polygon(player.global_position, _hull_world_polygon):
@@ -229,3 +238,63 @@ func _inventory():
 
 func _progress():
 	return get_node_or_null("/root/ProgressState")
+
+
+# —— 开场序列：镜头剧烈晃动 → 终端独白 ——
+
+func _start_intro_sequence() -> void:
+	_intro_active = true
+	# 禁用玩家控制
+	var player := $World/PlayerDiver
+	if player.has_method("set_control_enabled") or "control_enabled" in player:
+		player.set("control_enabled", false)
+	# 隐藏 HUD 按钮和提示
+	_back_button.visible = false
+	for label in _prompt_labels.values():
+		label.visible = false
+	_show_message("")
+
+	# 先震屏 2.5 秒
+	await _shake_camera(2.5, 28.0)
+	await get_tree().create_timer(0.4).timeout
+
+	# 弹出终端独白
+	var terminal := TerminalIntro.new()
+	add_child(terminal)
+	terminal.intro_finished.connect(_on_intro_finished)
+
+
+func _shake_camera(duration: float, intensity: float) -> void:
+	var cam: Camera2D = $World/PlayerDiver/Camera2D
+	var original_offset := cam.offset
+	var elapsed := 0.0
+	while elapsed < duration:
+		elapsed += get_process_delta_time()
+		var decay := 1.0 - elapsed / duration
+		var amp := intensity * decay * decay
+		cam.offset = original_offset + Vector2(
+			randf_range(-amp, amp),
+			randf_range(-amp, amp),
+		)
+		# 旋转也晃
+		cam.rotation = randf_range(-0.04, 0.04) * decay
+		await get_tree().process_frame
+	cam.offset = original_offset
+	cam.rotation = 0.0
+
+
+func _on_intro_finished() -> void:
+	var progress = _progress()
+	if progress != null:
+		progress.mark_intro_seen()
+
+	# 恢复玩家控制
+	var player := $World/PlayerDiver
+	if player.has_method("set_control_enabled") or "control_enabled" in player:
+		player.set("control_enabled", true)
+	_back_button.visible = true
+
+	_intro_active = false
+	_refresh_prompts()
+	_update_inventory_status()
+	_show_message("船舱待命：查看任务，处理背包物品，或从下潜口进入海底。")
