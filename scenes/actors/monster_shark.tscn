@@ -1,0 +1,47 @@
+[gd_scene format=3 uid="uid://di6xfr2w6j0lo"]
+
+[ext_resource type="Script" uid="uid://bbmnyjqtbfgce" path="res://scripts/monster_patrol.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://coeh6pwc7qogn" path="res://assets/shark.png" id="2_shark"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
+radius = 27.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_shark"]
+atlas = ExtResource("2_shark")
+region = Rect2(0, 0, 2048, 2048)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_shark"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_shark")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 1.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_catch"]
+radius = 34.0
+
+[node name="MonsterShark" type="CharacterBody2D" unique_id=1271730342]
+script = ExtResource("1")
+
+[node name="VisionCone" type="Polygon2D" parent="." unique_id=1750681793]
+color = Color(1, 0.18, 0.1, 0.24)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=767249744]
+shape = SubResource("CircleShape2D_monster")
+
+[node name="BodyPivot" type="Node2D" parent="." unique_id=708979426]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=411206069]
+scale = Vector2(0.1, 0.1)
+sprite_frames = SubResource("SpriteFrames_shark")
+autoplay = "default"
+
+[node name="CatchArea" type="Area2D" parent="." unique_id=1821492027]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CatchArea" unique_id=1706797030]
+shape = SubResource("CircleShape2D_catch")

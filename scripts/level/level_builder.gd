@@ -5,7 +5,11 @@ const SolidCoverScene := preload("res://scenes/props/solid_cover.tscn")
 const SeaweedCoverScene := preload("res://scenes/props/seaweed_cover.tscn")
 const CoralCoverScene := preload("res://scenes/props/coral.tscn")
 const PlayerScene := preload("res://scenes/actors/player_diver.tscn")
-const MonsterScene := preload("res://scenes/actors/monster_patrol.tscn")
+const MonsterScenePaths := {
+	"octopus": "res://scenes/actors/monster_patrol.tscn",
+	"shark": "res://scenes/actors/monster_shark.tscn",
+	"fish": "res://scenes/actors/monster_fish.tscn",
+}
 const TreasureScene := preload("res://scenes/pickups/treasure_pickup.tscn")
 const AnchorScene := preload("res://scenes/props/anchor_exit.tscn")
 const ChestScenePath := "res://scenes/props/chest_box.tscn"
@@ -201,9 +205,17 @@ func _spawn_treasures(parent: Node, specs: Array) -> Array:
 func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
 	var monsters := []
 	for spec in specs:
-		var monster := MonsterScene.instantiate()
+		var kind := String(spec.get("kind", "octopus"))
+		var monster_scene_path := String(MonsterScenePaths.get(kind, MonsterScenePaths["octopus"]))
+		var monster_scene := load(monster_scene_path) as PackedScene
+		if monster_scene == null:
+			monster_scene = load(String(MonsterScenePaths["octopus"])) as PackedScene
+		var monster := monster_scene.instantiate()
 		monster.name = _node_name(spec["name"])
+		monster.monster_label = String(spec.get("display_name", "巡逻"))
+		monster.patrol_speed = float(spec.get("patrol_speed", monster.patrol_speed))
 		monster.set_meta("region_id", int(spec.get("region_id", 1)))
+		monster.set_meta("monster_kind", kind)
 		parent.add_child(monster)
 		monster.configure(spec["points"], player, CollisionLayers.WALL)
 		monster.configure_collision(CollisionLayers.MONSTER, CollisionLayers.WALL, CollisionLayers.PLAYER)

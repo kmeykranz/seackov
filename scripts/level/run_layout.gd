@@ -23,11 +23,17 @@ const ANCHORS := [
 ]
 
 const REGION_POPULATION := {
-	1: {"seaweed": 7, "coral": 6, "chests": 1, "monsters": 2, "treasures": {"common": 9, "rare": 3, "legendary": 2}},
-	2: {"seaweed": 9, "coral": 8, "chests": 2, "monsters": 5, "treasures": {"common": 6, "rare": 8, "legendary": 4}},
-	3: {"seaweed": 11, "coral": 10, "chests": 3, "monsters": 10, "treasures": {"common": 4, "rare": 10, "legendary": 8}},
+	1: {"seaweed": 7, "coral": 6, "chests": 1, "monsters": 4, "treasures": {"common": 9, "rare": 3, "legendary": 2}},
+	2: {"seaweed": 9, "coral": 8, "chests": 2, "monsters": 10, "treasures": {"common": 6, "rare": 8, "legendary": 4}},
+	3: {"seaweed": 11, "coral": 10, "chests": 3, "monsters": 20, "treasures": {"common": 4, "rare": 10, "legendary": 8}},
 	4: {"seaweed": 13, "coral": 12, "chests": 4, "monsters": 30, "treasures": {"common": 20, "rare": 20, "legendary": 20}},
 }
+
+const MONSTER_VARIANTS := [
+	{"kind": "octopus", "display_name": "章鱼", "patrol_speed": 112.0},
+	{"kind": "shark", "display_name": "鲨鱼", "patrol_speed": 164.0},
+	{"kind": "fish", "display_name": "鱼", "patrol_speed": 90.0},
+]
 
 
 static func build(unlocked_region_count: int = INITIAL_UNLOCKED_REGION_COUNT) -> Dictionary:
@@ -158,12 +164,16 @@ static func _generate_monsters() -> Array:
 		var region_id := int(region["id"])
 		var count := int(REGION_POPULATION[region_id]["monsters"])
 		for index in range(count):
+			var variant: Dictionary = MONSTER_VARIANTS[(index + region_id - 1) % MONSTER_VARIANTS.size()]
 			var center := _position_in_region(region, index, count, 0.73)
 			var width := 340.0 + float(region_id) * 60.0
 			var height := 250.0 + float((index + region_id) % 3) * 80.0
 			specs.append({
 				"region_id": region_id,
-				"name": "Region%dPatrol%02d" % [region_id, index],
+				"name": "Region%d%s%02d" % [region_id, String(variant["kind"]).capitalize(), index],
+				"kind": variant["kind"],
+				"display_name": variant["display_name"],
+				"patrol_speed": variant["patrol_speed"],
 				"points": _patrol_loop(center, width, height, region),
 			})
 	return specs
@@ -184,7 +194,7 @@ static func _position_in_region(region: Dictionary, index: int, count: int, offs
 	var usable_bottom := WORLD_RECT.end.y - 520.0
 	var spread_count := maxf(1.0, float(count))
 	var x_seed := fmod((float(index) * 0.61803398875) + offset, 1.0)
-	var y_seed := fmod((float(index % 7) / 7.0) + offset * 0.73 + float(index / 7) * 0.19, 1.0)
+	var y_seed := fmod((float(index % 7) / 7.0) + offset * 0.73 + float(floori(float(index) / 7.0)) * 0.19, 1.0)
 	if count == 1:
 		x_seed = 0.5
 	var x := lerpf(usable_left, usable_right, clampf((x_seed * spread_count + 0.5) / (spread_count + 1.0) + x_seed * 0.12, 0.08, 0.92))

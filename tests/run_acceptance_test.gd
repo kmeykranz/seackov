@@ -8,6 +8,8 @@ const MAIN_MENU_FONT_PATH := "res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf"
 const ENTITY_SCENE_PATHS := [
 	"res://scenes/actors/player_diver.tscn",
 	"res://scenes/actors/monster_patrol.tscn",
+	"res://scenes/actors/monster_shark.tscn",
+	"res://scenes/actors/monster_fish.tscn",
 	"res://scenes/pickups/treasure_pickup.tscn",
 	"res://scenes/props/anchor_exit.tscn",
 	"res://scenes/props/solid_cover.tscn",
@@ -184,13 +186,22 @@ func _test_map_population_distribution() -> void:
 	_assert(RunLayout.get_anchor_count() == 7, "run layout authors exactly seven anchors")
 	_assert(layout["anchors"].size() == 7, "generated layout exposes exactly seven anchors")
 
+	var monster_kinds := {}
+	var monster_speeds := {}
+
 	for region_id in [1, 2, 3, 4]:
 		_assert(_count_specs_in_region(layout["seaweed"], region_id) > 0, "region %d has seaweed" % region_id)
 		_assert(_count_specs_in_region(layout["coral"], region_id) > 0, "region %d has coral" % region_id)
 		_assert(_count_specs_in_region(layout["treasures"], region_id) > 0, "region %d has treasures" % region_id)
 
+	for spec in layout["monsters"]:
+		monster_kinds[String(spec.get("kind", ""))] = true
+		monster_speeds[float(spec.get("patrol_speed", 0.0))] = true
+
 	_assert(_count_specs_in_region(layout["chests"], 4) > _count_specs_in_region(layout["chests"], 1), "leftmost region has more chests than rightmost region")
 	_assert(_count_specs_in_region(layout["monsters"], 4) > _count_specs_in_region(layout["monsters"], 1), "leftmost region has more monsters than rightmost region")
+	_assert(monster_kinds.size() == 3, "run layout produces three monster kinds")
+	_assert(monster_speeds.size() == 3, "monster kinds have three distinct patrol speeds")
 	_assert(_count_treasure_rarity_in_region(layout["treasures"], 4, "legendary") > _count_treasure_rarity_in_region(layout["treasures"], 1, "legendary"), "leftmost region has more legendary treasure")
 	_assert(_treasure_value_weight_in_region(layout["treasures"], 4) > _treasure_value_weight_in_region(layout["treasures"], 1), "leftmost region has more valuable treasure mix")
 

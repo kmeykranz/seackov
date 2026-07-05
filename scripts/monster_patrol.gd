@@ -10,6 +10,7 @@ enum State {PATROL, CHASE}
 @export var vision_range: float = 310.0
 @export var vision_angle_degrees: float = 72.0
 @export var lost_sight_grace: float = 1.2
+@export var monster_label: String = "章鱼"
 
 var state: State = State.PATROL
 var patrol_points: Array[Vector2] = []
@@ -28,6 +29,7 @@ var _knockback_timer: float = 0.0
 @onready var body_pivot: Node2D = $BodyPivot
 @onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
 @onready var catch_area: Area2D = $CatchArea
+@onready var name_label: Label = $NameLabel
 
 
 func _ready() -> void:
@@ -71,7 +73,7 @@ func apply_disarm(duration: float) -> void:
 func apply_knockback(source_position: Vector2, impulse: float) -> void:
 	var direction := global_position - source_position
 	if direction == Vector2.ZERO:
-		direction = -facing
+		direction = - facing
 	if direction == Vector2.ZERO:
 		direction = Vector2.RIGHT
 	velocity = direction.normalized() * impulse
