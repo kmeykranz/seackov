@@ -1,11 +1,12 @@
 [gd_scene format=3 uid="uid://cuexwr8u6tnw4"]
 
 [ext_resource type="Script" uid="uid://dphhgoyiw1lu6" path="res://scripts/game_controller.gd" id="1"]
-[ext_resource type="PackedScene" path="res://scenes/ui/run_hud.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://b01n2cctakfyw" path="res://scenes/ui/run_hud.tscn" id="2"]
 [ext_resource type="Texture2D" uid="uid://bli6s6tuqq18f" path="res://assets/map.png" id="2_nm65f"]
+[ext_resource type="Texture2D" uid="uid://cmnycfa1t880f" path="res://assets/tunnel.png" id="3_f7sqi"]
 [ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="3_storage"]
 [ext_resource type="PackedScene" path="res://scenes/ui/minimap_ui.tscn" id="4_minimap"]
-[ext_resource type="PackedScene" path="res://scenes/ui/pause_menu_ui.tscn" id="5_pause"]
+[ext_resource type="PackedScene" uid="uid://bnfew33rivjvh" path="res://scenes/ui/pause_menu_ui.tscn" id="5_pause"]
 
 [node name="RunScene" type="Node2D" unique_id=1691030222]
 script = ExtResource("1")
@@ -28,9 +29,30 @@ offset = Vector2(4015.0142, 2328.0454)
 
 [node name="Fog" type="Node2D" parent="World" unique_id=1685908542]
 
-[node name="Effects" type="Node2D" parent="World"]
+[node name="Effects" type="Node2D" parent="World" unique_id=1132358072]
+
+[node name="Sprite2D" type="Sprite2D" parent="World" unique_id=141708967]
+position = Vector2(1923, 4425)
+texture = ExtResource("3_f7sqi")
+
+[node name="collision" type="StaticBody2D" parent="World" unique_id=1210891778]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="World/collision" unique_id=781361256]
+polygon = PackedVector2Array(1177, -37, 1624, 499, 1944, 1211, 2259, 2022, 2242, 2982, 1906, 3407, 1972, 3981, 2667, 3948, 2678, 4005, 1962, 4025, 1250, 3957, 1233, 3920, 1913, 3989, 1857, 3375, 2182, 2979, 2195, 2038, 1603, 524, 1152, -6)
+
+[node name="CollisionPolygon2D2" type="CollisionPolygon2D" parent="World/collision" unique_id=1184458691]
+polygon = PackedVector2Array(1012, 5993, 1663, 5667, 2024, 5005, 2016, 4625, 2707, 4636, 2694, 4582, 1178, 4549, 1184, 4598, 1943, 4621, 1960, 4991, 1630, 5621, 960, 5978)
+
+[node name="CollisionPolygon2D3" type="CollisionPolygon2D" parent="World/collision" unique_id=1814997423]
+polygon = PackedVector2Array(4376, 3655, 5185, 3225, 5634, 3138, 5877, 2867, 6280, 2775, 6499, 2616, 7570, 2238, 6785, 2708, 6733, 2839, 6264, 3070, 6168, 3190, 5842, 3241, 5603, 3480, 5256, 3373, 4826, 3496)
+
+[node name="no-monster" type="Area2D" parent="World" unique_id=1435860271]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="World/no-monster" unique_id=1235482916]
+polygon = PackedVector2Array(1194, 4588, 1252, 3936, 2687, 3976, 2702, 4675)
 
 [node name="CanvasModulate" type="CanvasModulate" parent="." unique_id=685040279]
+visible = false
 color = Color(0.033986602, 0.15454173, 0.29660228, 1)
 
 [node name="RunHud" parent="." unique_id=1333828393 instance=ExtResource("2")]

@@ -31,11 +31,12 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	_spawn_seaweed(containers["cover"], layout["seaweed"])
 	_spawn_coral(containers["cover"], layout["coral"])
 	var chests := _spawn_chests(containers["cover"], layout["chests"])
+	var monster_forbidden_polygons := _monster_forbidden_polygons(containers["actors"].get_parent())
 
 	var player := _spawn_player(containers["actors"], spawn_anchor_spec["position"], world_rect)
 	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"])
 	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"])
-	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player)
+	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, monster_forbidden_polygons)
 
 	return {
 		"player": player,
@@ -202,7 +203,7 @@ func _spawn_treasures(parent: Node, specs: Array) -> Array:
 	return treasures
 
 
-func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
+func _spawn_monsters(parent: Node, specs: Array, player: Node2D, forbidden_polygons: Array) -> Array:
 	var monsters := []
 	for spec in specs:
 		var kind := String(spec.get("kind", "octopus"))
@@ -216,11 +217,81 @@ func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
 		monster.patrol_speed = float(spec.get("patrol_speed", monster.patrol_speed))
 		monster.set_meta("region_id", int(spec.get("region_id", 1)))
 		monster.set_meta("monster_kind", kind)
+		monster.configure_avoidance(forbidden_polygons)
 		parent.add_child(monster)
-		monster.configure(spec["points"], player, CollisionLayers.WALL)
+		monster.configure(_sanitize_patrol_points(spec["points"], forbidden_polygons), player, CollisionLayers.WALL)
 		monster.configure_collision(CollisionLayers.MONSTER, CollisionLayers.WALL, CollisionLayers.PLAYER)
 		monsters.append(monster)
 	return monsters
+
+
+func _monster_forbidden_polygons(world: Node) -> Array:
+	var polygons := []
+	if world == null:
+		return polygons
+
+	var static_body := world.get_node_or_null("StaticBody2D")
+	if static_body == null:
+		return polygons
+
+	for child in static_body.get_children():
+		if not (child is CollisionPolygon2D):
+			continue
+		var world_polygon := PackedVector2Array()
+		for point in child.polygon:
+			world_polygon.append(static_body.to_global(point))
+		if not world_polygon.is_empty():
+			polygons.append(world_polygon)
+	return polygons
+
+
+func _sanitize_patrol_points(points: Array, forbidden_polygons: Array) -> Array:
+	var sanitized := []
+	for point in points:
+		var safe_point := _push_point_outside_forbidden(Vector2(point), forbidden_polygons)
+		sanitized.append(safe_point)
+	return sanitized
+
+
+func _push_point_outside_forbidden(point: Vector2, forbidden_polygons: Array) -> Vector2:
+	var candidate := point
+	for _attempt in range(8):
+		if not _is_point_forbidden(candidate, forbidden_polygons):
+			return candidate
+		var nearest_centroid := _nearest_forbidden_centroid(candidate, forbidden_polygons)
+		var direction := candidate - nearest_centroid
+		if direction == Vector2.ZERO:
+			direction = Vector2.RIGHT
+		candidate = nearest_centroid + direction.normalized() * (direction.length() + 96.0)
+	return candidate
+
+
+func _is_point_forbidden(point: Vector2, forbidden_polygons: Array) -> bool:
+	for polygon in forbidden_polygons:
+		if Geometry2D.is_point_in_polygon(point, polygon):
+			return true
+	return false
+
+
+func _nearest_forbidden_centroid(point: Vector2, forbidden_polygons: Array) -> Vector2:
+	var nearest := point
+	var nearest_distance := INF
+	for polygon in forbidden_polygons:
+		var centroid := _polygon_centroid(polygon)
+		var distance := point.distance_to(centroid)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest = centroid
+	return nearest
+
+
+func _polygon_centroid(polygon: PackedVector2Array) -> Vector2:
+	if polygon.is_empty():
+		return Vector2.ZERO
+	var total := Vector2.ZERO
+	for point in polygon:
+		total += point
+	return total / float(polygon.size())
 
 
 func _select_spawn_anchor(specs: Array, unlocked_region_count: int) -> Dictionary:

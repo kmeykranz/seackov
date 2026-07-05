@@ -1,4 +1,4 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://c6vfdyhri7sle"]
 
 [ext_resource type="Script" uid="uid://bbmnyjqtbfgce" path="res://scripts/monster_patrol.gd" id="1"]
 [ext_resource type="Texture2D" uid="uid://coeh6pwc7qogn" path="res://assets/shark.png" id="2_fish"]
@@ -25,25 +25,24 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_catch"]
 radius = 30.0
 
-[node name="MonsterFish" type="CharacterBody2D"]
+[node name="MonsterFish" type="CharacterBody2D" unique_id=1477963477]
 script = ExtResource("1")
 
-[node name="VisionCone" type="Polygon2D" parent="."]
-color = Color(0.3, 0.9, 1.0, 0.24)
+[node name="VisionCone" type="Polygon2D" parent="." unique_id=1374815224]
+color = Color(0.3019608, 0.9019608, 1, 0.105882354)
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1498130476]
 shape = SubResource("CircleShape2D_monster")
 
-[node name="BodyPivot" type="Node2D" parent="."]
+[node name="BodyPivot" type="Node2D" parent="." unique_id=318613334]
 
-[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot"]
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=2119962141]
+modulate = Color(0.52, 0.92, 1, 1)
 scale = Vector2(0.08, 0.08)
-modulate = Color(0.52, 0.92, 1.0, 1.0)
 sprite_frames = SubResource("SpriteFrames_fish")
 autoplay = "default"
-frame = 0
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="." unique_id=916161448]
 offset_left = -36.0
 offset_top = 30.0
 offset_right = 50.0
@@ -52,8 +51,8 @@ theme_override_fonts/font = ExtResource("3_font")
 theme_override_font_sizes/font_size = 16
 text = "鱼"
 
-[node name="CatchArea" type="Area2D" parent="."]
+[node name="CatchArea" type="Area2D" parent="." unique_id=768226900]
 collision_layer = 0
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CatchArea"]
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CatchArea" unique_id=1937343598]
 shape = SubResource("CircleShape2D_catch")
