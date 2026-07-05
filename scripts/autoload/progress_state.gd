@@ -29,6 +29,7 @@ var uploaded_legendary_count: int = 0
 var pending_knowledge_ids: Array[String] = []
 var uploaded_knowledge_ids: Array[String] = []
 var unlocked_tool_ids: Array[String] = []
+var has_seen_intro: bool = false
 
 var _save_path: String = DEFAULT_SAVE_PATH
 
@@ -200,6 +201,7 @@ func to_save_data() -> Dictionary:
 		"pending_knowledge_ids": pending_knowledge_ids,
 		"uploaded_knowledge_ids": uploaded_knowledge_ids,
 		"unlocked_tool_ids": unlocked_tool_ids,
+		"has_seen_intro": has_seen_intro,
 	}
 
 
@@ -209,6 +211,7 @@ func _set_defaults() -> void:
 	pending_knowledge_ids.clear()
 	uploaded_knowledge_ids.clear()
 	unlocked_tool_ids.clear()
+	has_seen_intro = false
 
 
 func _apply_save_data(data: Dictionary) -> void:
@@ -224,6 +227,7 @@ func _apply_save_data(data: Dictionary) -> void:
 	pending_knowledge_ids = _sanitize_knowledge_ids(data.get("pending_knowledge_ids", []))
 	uploaded_knowledge_ids = _sanitize_knowledge_ids(data.get("uploaded_knowledge_ids", []))
 	unlocked_tool_ids = _sanitize_tool_ids(data.get("unlocked_tool_ids", []))
+	has_seen_intro = bool(data.get("has_seen_intro", false))
 	for knowledge_id in uploaded_knowledge_ids:
 		var tool_id := String(KNOWLEDGE_TOOL_MAP.get(knowledge_id, ""))
 		if tool_id != "" and not unlocked_tool_ids.has(tool_id):
@@ -235,6 +239,11 @@ func _apply_unlock_rules() -> void:
 	var unlocks_from_upload := 1 + int(uploaded_legendary_count / LEGENDARY_PER_REGION_UNLOCK)
 	unlocked_region_count = maxi(unlocked_region_count, unlocks_from_upload)
 	unlocked_region_count = clampi(unlocked_region_count, INITIAL_UNLOCKED_REGION_COUNT, MAX_REGION_COUNT)
+
+
+func mark_intro_seen() -> void:
+	has_seen_intro = true
+	save()
 
 
 func _sanitize_knowledge_ids(value) -> Array[String]:
