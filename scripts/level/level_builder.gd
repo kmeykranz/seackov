@@ -27,23 +27,24 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	var spawn_anchor_spec := _select_spawn_anchor(layout["anchors"], unlocked_region_count)
 
 	_spawn_boundaries(containers["cover"], world_rect)
-	_spawn_solid_cover(containers["cover"], layout["solid_cover"])
-	_spawn_seaweed(containers["cover"], layout["seaweed"])
-	_spawn_coral(containers["cover"], layout["coral"])
-	var chests := _spawn_chests(containers["cover"], layout["chests"])
-	var monster_forbidden_polygons := _monster_forbidden_polygons(containers["actors"].get_parent())
+	var forbidden_polygons := _forbidden_zone_polygons(containers["actors"].get_parent())
+	_spawn_solid_cover(containers["cover"], layout["solid_cover"], forbidden_polygons)
+	_spawn_seaweed(containers["cover"], layout["seaweed"], forbidden_polygons)
+	_spawn_coral(containers["cover"], layout["coral"], forbidden_polygons)
+	var chests := _spawn_chests(containers["cover"], layout["chests"], forbidden_polygons)
+	var spawn_anchor_position := _push_point_outside_forbidden(Vector2(spawn_anchor_spec["position"]), forbidden_polygons, 120.0)
 
-	var player := _spawn_player(containers["actors"], spawn_anchor_spec["position"], world_rect)
-	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"])
-	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"])
-	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, monster_forbidden_polygons)
+	var player := _spawn_player(containers["actors"], spawn_anchor_position, world_rect)
+	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"], forbidden_polygons)
+	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"], forbidden_polygons)
+	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, forbidden_polygons)
 
 	return {
 		"player": player,
 		"anchor": anchors[0] if not anchors.is_empty() else null,
 		"anchors": anchors,
 		"spawn_anchor_id": spawn_anchor_spec["id"],
-		"spawn_anchor_position": spawn_anchor_spec["position"],
+		"spawn_anchor_position": spawn_anchor_position,
 		"chests": chests,
 		"treasures": treasures,
 		"monsters": monsters,
@@ -66,7 +67,7 @@ func _spawn_boundaries(parent: Node, world_rect: Rect2) -> void:
 	_append_horizontal_wall_segments(specs, "South Wall", left, right, bottom + WALL_THICKNESS * 0.5)
 	_append_vertical_wall_segments(specs, "West Wall", top, bottom, left - WALL_THICKNESS * 0.5)
 	_append_vertical_wall_segments(specs, "East Wall", top, bottom, right + WALL_THICKNESS * 0.5)
-	_spawn_solid_cover(parent, specs)
+	_spawn_solid_cover(parent, specs, [])
 
 
 func _append_horizontal_wall_segments(specs: Array, label: String, left: float, right: float, y_position: float) -> void:
@@ -101,11 +102,14 @@ func _append_vertical_wall_segments(specs: Array, label: String, top: float, bot
 		index += 1
 
 
-func _spawn_solid_cover(parent: Node, specs: Array) -> void:
+func _spawn_solid_cover(parent: Node, specs: Array, forbidden_polygons: Array) -> void:
 	for spec in specs:
 		var cover := SolidCoverScene.instantiate()
 		cover.name = _node_name(spec["name"])
-		cover.position = spec["position"]
+		var position := Vector2(spec["position"])
+		if not bool(spec.get("boundary_segment", false)):
+			position = _push_point_outside_forbidden(position, forbidden_polygons, _solid_cover_clearance(spec))
+		cover.position = position
 		cover.set_meta("region_id", int(spec.get("region_id", 1)))
 		cover.set_meta("boundary_segment", bool(spec.get("boundary_segment", false)))
 		cover.set_meta("cover_kind", spec.get("kind", "reef"))
@@ -115,11 +119,11 @@ func _spawn_solid_cover(parent: Node, specs: Array) -> void:
 		cover.configure(spec["size"], spec.get("kind", "reef"), spec["name"])
 
 
-func _spawn_seaweed(parent: Node, specs: Array) -> void:
+func _spawn_seaweed(parent: Node, specs: Array, forbidden_polygons: Array) -> void:
 	for spec in specs:
 		var cover := SeaweedCoverScene.instantiate()
 		cover.name = _node_name(spec["name"])
-		cover.position = spec["position"]
+		cover.position = _push_point_outside_forbidden(Vector2(spec["position"]), forbidden_polygons, 88.0)
 		cover.set_meta("region_id", int(spec.get("region_id", 1)))
 		cover.set_meta("cover_kind", "seaweed")
 		cover.collision_layer = CollisionLayers.COVER
@@ -128,11 +132,11 @@ func _spawn_seaweed(parent: Node, specs: Array) -> void:
 		cover.configure(spec["size"], spec["name"])
 
 
-func _spawn_coral(parent: Node, specs: Array) -> void:
+func _spawn_coral(parent: Node, specs: Array, forbidden_polygons: Array) -> void:
 	for spec in specs:
 		var cover := CoralCoverScene.instantiate()
 		cover.name = _node_name(spec["name"])
-		cover.position = spec["position"]
+		cover.position = _push_point_outside_forbidden(Vector2(spec["position"]), forbidden_polygons, 92.0)
 		cover.set_meta("region_id", int(spec.get("region_id", 1)))
 		cover.set_meta("cover_kind", "coral")
 		cover.collision_layer = CollisionLayers.WALL
@@ -153,14 +157,14 @@ func _spawn_player(parent: Node, spawn_position: Vector2, world_rect: Rect2) -> 
 	return player
 
 
-func _spawn_anchors(parent: Node, specs: Array, spawn_anchor_id: String) -> Array:
+func _spawn_anchors(parent: Node, specs: Array, spawn_anchor_id: String, forbidden_polygons: Array) -> Array:
 	var anchors := []
 	for spec in specs:
 		if String(spec["id"]) == spawn_anchor_id:
 			continue
 		var anchor := AnchorScene.instantiate()
 		anchor.name = "AnchorExit" if anchors.is_empty() else "AnchorExit_%s" % spec["id"]
-		anchor.position = spec["position"]
+		anchor.position = _push_point_outside_forbidden(Vector2(spec["position"]), forbidden_polygons, 120.0)
 		anchor.modulate = Color(1.0, 0.42, 0.45, 1.0)
 		anchor.collision_layer = CollisionLayers.EXIT
 		anchor.collision_mask = CollisionLayers.PLAYER
@@ -171,14 +175,14 @@ func _spawn_anchors(parent: Node, specs: Array, spawn_anchor_id: String) -> Arra
 	return anchors
 
 
-func _spawn_chests(parent: Node, specs: Array) -> Array:
+func _spawn_chests(parent: Node, specs: Array, forbidden_polygons: Array) -> Array:
 	var chest_scene: PackedScene = load(ChestScenePath)
 	var chests := []
 	for index in range(specs.size()):
 		var spec: Dictionary = specs[index]
 		var chest: Area2D = chest_scene.instantiate()
 		chest.name = "TreasureChest_%02d" % index
-		chest.position = spec["position"]
+		chest.position = _push_point_outside_forbidden(Vector2(spec["position"]), forbidden_polygons, 84.0)
 		chest.set_meta("region_id", int(spec.get("region_id", 1)))
 		chest.collision_layer = 0
 		chest.collision_mask = CollisionLayers.PLAYER
@@ -187,13 +191,13 @@ func _spawn_chests(parent: Node, specs: Array) -> Array:
 	return chests
 
 
-func _spawn_treasures(parent: Node, specs: Array) -> Array:
+func _spawn_treasures(parent: Node, specs: Array, forbidden_polygons: Array) -> Array:
 	var treasures := []
 	for index in range(specs.size()):
 		var spec: Dictionary = specs[index]
 		var treasure := TreasureScene.instantiate()
 		treasure.name = "Treasure_%s_%02d" % [spec["rarity"], index]
-		treasure.position = spec["position"]
+		treasure.position = _push_point_outside_forbidden(Vector2(spec["position"]), forbidden_polygons, 72.0)
 		treasure.set_meta("region_id", int(spec.get("region_id", 1)))
 		treasure.collision_layer = CollisionLayers.TREASURE
 		treasure.collision_mask = CollisionLayers.PLAYER
@@ -225,23 +229,23 @@ func _spawn_monsters(parent: Node, specs: Array, player: Node2D, forbidden_polyg
 	return monsters
 
 
-func _monster_forbidden_polygons(world: Node) -> Array:
+func _forbidden_zone_polygons(world: Node) -> Array:
 	var polygons := []
 	if world == null:
 		return polygons
 
-	var static_body := world.get_node_or_null("StaticBody2D")
-	if static_body == null:
-		return polygons
-
-	for child in static_body.get_children():
-		if not (child is CollisionPolygon2D):
+	for zone_name in ["collision", "no-monster"]:
+		var zone := world.get_node_or_null(zone_name)
+		if zone == null:
 			continue
-		var world_polygon := PackedVector2Array()
-		for point in child.polygon:
-			world_polygon.append(static_body.to_global(point))
-		if not world_polygon.is_empty():
-			polygons.append(world_polygon)
+		for child in zone.get_children():
+			if not (child is CollisionPolygon2D):
+				continue
+			var world_polygon := PackedVector2Array()
+			for point in child.polygon:
+				world_polygon.append(zone.to_global(point))
+			if not world_polygon.is_empty():
+				polygons.append(world_polygon)
 	return polygons
 
 
@@ -253,7 +257,7 @@ func _sanitize_patrol_points(points: Array, forbidden_polygons: Array) -> Array:
 	return sanitized
 
 
-func _push_point_outside_forbidden(point: Vector2, forbidden_polygons: Array) -> Vector2:
+func _push_point_outside_forbidden(point: Vector2, forbidden_polygons: Array, clearance: float = 96.0) -> Vector2:
 	var candidate := point
 	for _attempt in range(8):
 		if not _is_point_forbidden(candidate, forbidden_polygons):
@@ -262,8 +266,13 @@ func _push_point_outside_forbidden(point: Vector2, forbidden_polygons: Array) ->
 		var direction := candidate - nearest_centroid
 		if direction == Vector2.ZERO:
 			direction = Vector2.RIGHT
-		candidate = nearest_centroid + direction.normalized() * (direction.length() + 96.0)
+		candidate = nearest_centroid + direction.normalized() * (direction.length() + clearance)
 	return candidate
+
+
+func _solid_cover_clearance(spec: Dictionary) -> float:
+	var size: Vector2 = Vector2(spec.get("size", Vector2(0.0, 0.0)))
+	return maxf(size.x, size.y) * 0.5 + 72.0
 
 
 func _is_point_forbidden(point: Vector2, forbidden_polygons: Array) -> bool:

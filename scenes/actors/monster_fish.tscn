@@ -1,21 +1,16 @@
 [gd_scene format=3 uid="uid://c6vfdyhri7sle"]
 
 [ext_resource type="Script" uid="uid://bbmnyjqtbfgce" path="res://scripts/monster_patrol.gd" id="1"]
-[ext_resource type="Texture2D" uid="uid://coeh6pwc7qogn" path="res://assets/shark.png" id="2_fish"]
-[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_font"]
+[ext_resource type="Texture2D" uid="uid://ccy2xlsj6j3dx" path="res://assets/fish.png" id="2_6v67s"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_monster"]
 radius = 24.0
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_fish"]
-atlas = ExtResource("2_fish")
-region = Rect2(0, 0, 2048, 2048)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_fish"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": SubResource("AtlasTexture_fish")
+"texture": ExtResource("2_6v67s")
 }],
 "loop": 1,
 "name": &"default",
@@ -23,7 +18,7 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_catch"]
-radius = 30.0
+radius = 36.013885
 
 [node name="MonsterFish" type="CharacterBody2D" unique_id=1477963477]
 script = ExtResource("1")
@@ -38,18 +33,9 @@ shape = SubResource("CircleShape2D_monster")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="BodyPivot" unique_id=2119962141]
 modulate = Color(0.52, 0.92, 1, 1)
-scale = Vector2(0.08, 0.08)
+scale = Vector2(0.15, 0.15)
 sprite_frames = SubResource("SpriteFrames_fish")
 autoplay = "default"
-
-[node name="NameLabel" type="Label" parent="." unique_id=916161448]
-offset_left = -36.0
-offset_top = 30.0
-offset_right = 50.0
-offset_bottom = 53.0
-theme_override_fonts/font = ExtResource("3_font")
-theme_override_font_sizes/font_size = 16
-text = "鱼"
 
 [node name="CatchArea" type="Area2D" parent="." unique_id=768226900]
 collision_layer = 0

@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bvhtuk3bysne5"]
 
 [ext_resource type="Script" uid="uid://cvw3w6rhfq7yo" path="res://scripts/boat_scene.gd" id="1_5rki1"]
+[ext_resource type="Texture2D" uid="uid://c5ii876htnfi1" path="res://assets/in-ship.png" id="2_n5712"]
 [ext_resource type="PackedScene" uid="uid://e51xe1g2m4p5" path="res://scenes/actors/player_diver.tscn" id="2_xm3pv"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_font"]
 [ext_resource type="PackedScene" path="res://scenes/ui/storage_transfer_ui.tscn" id="4_storage"]
@@ -42,6 +43,11 @@ polygon = PackedVector2Array(960, 74, 1228, 232, 1376, 922, 1314, 1018, 606, 101
 [node name="InnerDeck" type="Polygon2D" parent="World" unique_id=548880651]
 color = Color(0.21, 0.27, 0.31, 1)
 polygon = PackedVector2Array(960, 136, 1168, 262, 1288, 906, 1244, 956, 676, 956, 632, 906, 752, 262)
+
+[node name="ship" type="Sprite2D" parent="World" unique_id=536830679]
+position = Vector2(919, 523)
+scale = Vector2(0.54817706, 0.5481771)
+texture = ExtResource("2_n5712")
 
 [node name="CenterAisle" type="Polygon2D" parent="World" unique_id=2004790249]
 color = Color(0.11, 0.15, 0.18, 1)
