@@ -12,6 +12,7 @@ const BUBBLE_PATH := "res://assets/sound/music/bubble.mp3"
 const FAIL_PATH := "res://assets/sound/effect/fail.mp3"
 const FAIL_SCENE_MUSIC_PATH := "res://assets/sound/music/fail_scene.mp3"
 const BOARD_BACK_PATH := "res://assets/sound/effect/board_back.mp3"
+const UPLOAD_PATH := "res://assets/sound/effect/upload.mp3"
 const LEVEL_MUSIC_PATHS := [
 	"res://assets/sound/music/L1.mp3",
 	"res://assets/sound/music/L2.mp3",
@@ -133,4 +134,9 @@ func play_fail_scene_music() -> void:
 
 func play_board_back() -> void:
 	_sfx_player.stream = load(BOARD_BACK_PATH)
+	_sfx_player.play()
+
+
+func play_upload() -> void:
+	_sfx_player.stream = load(UPLOAD_PATH)
 	_sfx_player.play()

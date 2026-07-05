@@ -25,6 +25,16 @@ var _stun_timer: float = 0.0
 var _disarm_timer: float = 0.0
 var _knockback_timer: float = 0.0
 
+## —— 巡逻卡住检测 / 避障 ——
+var _last_waypoint_distance: float = 0.0
+var _stuck_counter: int = 0
+var _sidestep_dir: Vector2 = Vector2.ZERO
+var _sidestep_timer: float = 0.0
+
+const STUCK_FRAMES: int = 30
+const SIDESTEP_DURATION: float = 0.55
+const SIDESTEP_SPEED: float = 130.0
+
 @onready var vision_cone: Polygon2D = $VisionCone
 @onready var body_pivot: Node2D = $BodyPivot
 @onready var body_sprite: AnimatedSprite2D = $BodyPivot/AnimatedSprite2D
@@ -161,7 +171,7 @@ func _physics_process(delta: float) -> void:
 
 	match state:
 		State.PATROL:
-			_process_patrol()
+			_process_patrol(delta)
 		State.CHASE:
 			_process_chase(delta, sees_player)
 
@@ -169,21 +179,53 @@ func _physics_process(delta: float) -> void:
 	_update_visuals()
 
 
-func _process_patrol() -> void:
+func _process_patrol(delta: float) -> void:
 	if patrol_points.is_empty():
 		velocity = Vector2.ZERO
 		return
 
 	var waypoint := patrol_points[_patrol_index]
-	if global_position.distance_to(waypoint) <= 14.0:
+
+	# —— 侧移绕路模式 ——
+	if _sidestep_timer > 0.0:
+		_sidestep_timer = maxf(0.0, _sidestep_timer - delta)
+		velocity = _sidestep_dir * SIDESTEP_SPEED
+		facing = _sidestep_dir
+		return
+
+	var distance := global_position.distance_to(waypoint)
+
+	if distance <= 14.0:
 		_patrol_index = (_patrol_index + 1) % patrol_points.size()
-		waypoint = patrol_points[_patrol_index]
+		_last_waypoint_distance = 0.0
+		_stuck_counter = 0
+		return
 
 	var direction := waypoint - global_position
 	if direction.length() <= 0.01:
 		velocity = Vector2.ZERO
 		return
 
+	# —— 卡住检测：连续 STUCK_FRAMES 帧没有明显靠近 ——
+	if _last_waypoint_distance > 0.0 and distance >= _last_waypoint_distance - 2.0:
+		_stuck_counter += 1
+	else:
+		_stuck_counter = 0
+
+	if _stuck_counter >= STUCK_FRAMES:
+		# 选一个垂直于目标方向的方向绕路
+		var perp := Vector2(direction.y, -direction.x).normalized()
+		if randi() % 2 == 0:
+			perp = -perp
+		_sidestep_dir = perp
+		_sidestep_timer = SIDESTEP_DURATION
+		_stuck_counter = 0
+		_last_waypoint_distance = 0.0
+		velocity = perp * SIDESTEP_SPEED
+		facing = perp
+		return
+
+	_last_waypoint_distance = distance
 	facing = direction.normalized()
 	velocity = facing * patrol_speed
 
