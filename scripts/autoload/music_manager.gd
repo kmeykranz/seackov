@@ -11,6 +11,13 @@ const MONSTER_DISCOVERED_PATH := "res://assets/sound/effect/npc/monster_discover
 const BUBBLE_PATH := "res://assets/sound/music/bubble.mp3"
 const FAIL_PATH := "res://assets/sound/effect/fail.mp3"
 const FAIL_SCENE_MUSIC_PATH := "res://assets/sound/music/fail_scene.mp3"
+const BOARD_BACK_PATH := "res://assets/sound/effect/board_back.mp3"
+const LEVEL_MUSIC_PATHS := [
+	"res://assets/sound/music/L1.mp3",
+	"res://assets/sound/music/L2.mp3",
+	"res://assets/sound/music/L3.mp3",
+	"res://assets/sound/music/L4.mp3",
+]
 
 
 var _music_player: AudioStreamPlayer
@@ -75,6 +82,15 @@ func play_underwater() -> void:
 	_sfx_player.play()
 
 
+func play_underwater_level_music(level: int) -> void:
+	var idx := clampi(level, 1, LEVEL_MUSIC_PATHS.size()) - 1
+	var path: String = LEVEL_MUSIC_PATHS[idx]
+	if _music_player.stream != null and _music_player.stream.resource_path == path and _music_player.playing:
+		return
+	_music_player.stream = load(path)
+	_music_player.play()
+
+
 func play_chest_open() -> void:
 	_sfx_player.stream = load(CHEST_OPEN_PATH)
 	_sfx_player.play()
@@ -113,3 +129,8 @@ func play_fail_scene_music() -> void:
 		return
 	_music_player.stream = load(path)
 	_music_player.play()
+
+
+func play_board_back() -> void:
+	_sfx_player.stream = load(BOARD_BACK_PATH)
+	_sfx_player.play()
