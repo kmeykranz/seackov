@@ -35,7 +35,7 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	var player := _spawn_player(containers["actors"], spawn_anchor_spec["position"], world_rect)
 	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"])
 	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"])
-	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player)
+	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, spawn_anchor_spec["position"])
 
 	return {
 		"player": player,
@@ -202,8 +202,9 @@ func _spawn_treasures(parent: Node, specs: Array) -> Array:
 	return treasures
 
 
-func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
+func _spawn_monsters(parent: Node, specs: Array, player: Node2D, spawn_position: Vector2) -> Array:
 	var monsters := []
+	const MIN_SPAWN_DISTANCE := 350.0
 	for spec in specs:
 		var kind := String(spec.get("kind", "octopus"))
 		var monster_scene_path := String(MonsterScenePaths.get(kind, MonsterScenePaths["octopus"]))
@@ -218,6 +219,19 @@ func _spawn_monsters(parent: Node, specs: Array, player: Node2D) -> Array:
 		monster.set_meta("monster_kind", kind)
 		parent.add_child(monster)
 		monster.configure(spec["points"], player, CollisionLayers.WALL)
+
+		# 避免怪物刷在玩家脸上：太近就跳到最远的巡逻角点
+		var pts: Array = spec["points"]
+		if monster.global_position.distance_to(spawn_position) < MIN_SPAWN_DISTANCE and pts.size() >= 2:
+			var best_pt := pts[0] as Vector2
+			var best_d := 0.0
+			for pt in pts:
+				var d := (pt as Vector2).distance_to(spawn_position)
+				if d > best_d:
+					best_d = d
+					best_pt = pt
+			monster.global_position = best_pt
+
 		monster.configure_collision(CollisionLayers.MONSTER, CollisionLayers.WALL, CollisionLayers.PLAYER)
 		monsters.append(monster)
 	return monsters
