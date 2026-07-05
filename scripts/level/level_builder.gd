@@ -1,4 +1,5 @@
 extends Node
+class_name LevelBuilder
 
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const SolidCoverScene := preload("res://scenes/props/solid_cover.tscn")
@@ -33,7 +34,6 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	_spawn_coral(containers["cover"], layout["coral"], forbidden_polygons)
 	var chests := _spawn_chests(containers["cover"], layout["chests"], forbidden_polygons)
 	var spawn_anchor_position := _push_point_outside_forbidden(Vector2(spawn_anchor_spec["position"]), forbidden_polygons, 120.0)
-
 	var player := _spawn_player(containers["actors"], spawn_anchor_position, world_rect)
 	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"], forbidden_polygons)
 	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"], forbidden_polygons)
