@@ -22,14 +22,14 @@ theme_override_constants/margin_bottom = 10
 [node name="StatusLabel" type="Label" parent="StatusPanel/MarginContainer" unique_id=158735913]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 30
 text = "状态：搜索中"
 
 [node name="MessagePanel" type="PanelContainer" parent="." unique_id=70641873]
 offset_left = 16.0
-offset_top = 136.0
+offset_top = 156.0
 offset_right = 560.0
-offset_bottom = 190.0
+offset_bottom = 212.0
 
 [node name="MarginContainer" type="MarginContainer" parent="MessagePanel" unique_id=1241548290]
 layout_mode = 2
@@ -41,14 +41,14 @@ theme_override_constants/margin_bottom = 10
 [node name="MessageLabel" type="Label" parent="MessagePanel/MarginContainer" unique_id=1371459635]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 35
 text = "就绪"
 
 [node name="ToolPanel" type="PanelContainer" parent="." unique_id=873095331]
-offset_left = 16.0
-offset_top = 200.0
-offset_right = 560.0
-offset_bottom = 286.0
+offset_left = 1350.0
+offset_top = 20.0
+offset_right = 1894.0
+offset_bottom = 169.99983
 
 [node name="MarginContainer" type="MarginContainer" parent="ToolPanel" unique_id=1062396242]
 layout_mode = 2
@@ -64,13 +64,13 @@ theme_override_constants/separation = 6
 [node name="ToolLabel" type="Label" parent="ToolPanel/MarginContainer/VBoxContainer" unique_id=1583664017]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 17
+theme_override_font_sizes/font_size = 25
 text = "道具：未解锁"
 
 [node name="ToolHintLabel" type="Label" parent="ToolPanel/MarginContainer/VBoxContainer" unique_id=1911728826]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 15
+theme_override_font_sizes/font_size = 25
 text = "探索并上传知识后解锁。"
 autowrap_mode = 3
 
@@ -101,15 +101,19 @@ theme_override_constants/separation = 12
 [node name="TitleLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=822196754]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 45
 text = "已到达锚点"
 horizontal_alignment = 1
+
+[node name="Label" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=665879625]
+layout_mode = 2
 
 [node name="PromptLabel" type="Label" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1362922077]
 layout_mode = 2
 theme_override_fonts/font = ExtResource("2_font")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 25
 text = "按 F 返回船上结算，或继续搜索。"
+horizontal_alignment = 1
 autowrap_mode = 3
 
 [node name="ExtractButton" type="Button" parent="AnchorPrompt/MarginContainer/VBoxContainer" unique_id=1999385801]

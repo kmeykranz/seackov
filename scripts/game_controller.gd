@@ -92,6 +92,7 @@ func _ready() -> void:
 	var music_manager = _music_manager()
 	if music_manager != null:
 		music_manager.play_underwater()
+		music_manager.play_underwater_level_music(unlocked_region_count)
 		music_manager.play_bubble()
 		music_manager.diving_from_boat = false
 
@@ -171,6 +172,11 @@ func choose_extract() -> void:
 	warehouse_value += carried_value
 	carried_value = 0
 	run_state = RunState.EXTRACTED
+
+	var music_mgr: Node = _music_manager()
+	if music_mgr != null:
+		music_mgr.play_board_back()
+
 	_set_gameplay_enabled(false)
 	_hud.hide_anchor_prompt()
 	_hud.show_end(warehouse_value)

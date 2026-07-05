@@ -3,7 +3,6 @@
 [ext_resource type="Script" uid="uid://dgjbol7xqwf6n" path="res://scenes/ui/about.gd" id="1_w0w83"]
 [ext_resource type="Texture2D" uid="uid://baefrlp0nhuf" path="res://assets/title.png" id="2_m186m"]
 [ext_resource type="Texture2D" uid="uid://cghax0fhsd3qq" path="res://assets/bg.jpg" id="2_w0w83"]
-[ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="3_m186m"]
 [ext_resource type="FontFile" uid="uid://dgy3il8wargfn" path="res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf" id="5_w0w83"]
 
 [node name="About" type="Control" unique_id=2034737801]
@@ -32,7 +31,7 @@ offset_left = 279.0
 offset_top = 225.0
 offset_right = 1631.0
 offset_bottom = 298.0
-theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_fonts/font = ExtResource("5_w0w83")
 theme_override_font_sizes/font_size = 50
 text = "制作人员"
 horizontal_alignment = 1
@@ -43,7 +42,8 @@ offset_left = 740.0
 offset_top = 333.0
 offset_right = 972.0
 offset_bottom = 1080.0
-theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_constants/line_spacing = 18
+theme_override_fonts/font = ExtResource("5_w0w83")
 theme_override_font_sizes/font_size = 32
 text = "策划
 程序
@@ -61,10 +61,11 @@ offset_left = 956.0
 offset_top = 333.0
 offset_right = 1407.0
 offset_bottom = 834.0
-theme_override_fonts/font = ExtResource("3_m186m")
+theme_override_constants/line_spacing = 18
+theme_override_fonts/font = ExtResource("5_w0w83")
 theme_override_font_sizes/font_size = 32
 text = "APWBD
-Fiveth
+枸杞加水
 MamboJiang
 小李子
 椰树果子
@@ -85,10 +86,10 @@ text = "返回"
 
 [node name="Label4" type="Label" parent="." unique_id=1840322382]
 layout_mode = 0
-offset_left = 1174.0
-offset_top = 745.00006
-offset_right = 1296.0
-offset_bottom = 768.00006
+offset_left = 1232.0001
+offset_top = 752.0
+offset_right = 1404.0001
+offset_bottom = 775.0
 scale = Vector2(1.105, 1.105)
 theme_override_fonts/font = ExtResource("5_w0w83")
 text = "(人工智能还是太好用了)"

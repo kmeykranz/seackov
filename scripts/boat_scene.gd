@@ -144,6 +144,8 @@ func _on_interaction_body_exited(body: Node, action: String) -> void:
 
 
 func _upload_backpack() -> void:
+	MusicManager.play_upload()
+
 	var inventory = _inventory()
 	var result: Dictionary = inventory.upload_all_from_backpack()
 	var progress = _progress()
