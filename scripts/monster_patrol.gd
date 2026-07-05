@@ -204,7 +204,6 @@ func _process_patrol() -> void:
 		velocity = Vector2.ZERO
 		return
 
-	if global_position.distance_to(waypoint) <= 14.0:
 	var distance := global_position.distance_to(waypoint)
 
 	if distance <= 14.0:

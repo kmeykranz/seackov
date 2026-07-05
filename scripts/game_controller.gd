@@ -3,7 +3,6 @@ class_name RunSceneController
 
 const CollisionLayers := preload("res://scripts/support/collision_layers.gd")
 const RunLayout := preload("res://scripts/level/run_layout.gd")
-const LevelBuilderScript := preload("res://scripts/level/level_builder.gd")
 const RunToolSystemScript := preload("res://scripts/items/run_tool_system.gd")
 const BoatScenePath := "res://scenes/boat_scene.tscn"
 const LobbyScenePath := "res://scenes/ui/lobby.tscn"
@@ -341,7 +340,7 @@ func get_tool_system() -> Node:
 
 
 func _build_level() -> void:
-	var builder := LevelBuilderScript.new()
+	var builder: LevelBuilder = LevelBuilder.new()
 	add_child(builder)
 	var layout := RunLayout.build(_progress_unlocked_region_count())
 	var result := builder.build(_containers(), layout)
