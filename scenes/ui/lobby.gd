@@ -39,6 +39,7 @@ func _ready() -> void:
 	$start.pressed.connect(_on_start_pressed)
 	$boat_debug.pressed.connect(_on_boat_debug_pressed)
 	$save_debug.pressed.connect(_on_save_debug_pressed)
+	$reset.pressed.connect(func() -> void: perform_debug_save_action("reset"))
 	$DebugPanel/ResetSaveButton.pressed.connect(func() -> void: perform_debug_save_action("reset"))
 	$DebugPanel/AddLegendaryButton.pressed.connect(func() -> void: perform_debug_save_action("add_uploaded_legendary"))
 	$DebugPanel/UnlockNextButton.pressed.connect(func() -> void: perform_debug_save_action("unlock_next"))
@@ -72,6 +73,9 @@ func perform_debug_save_action(action: String) -> bool:
 	match action:
 		"reset":
 			progress.reset_save()
+			var inventory: Node = get_node_or_null("/root/PlayerInventory")
+			if inventory != null and inventory.has_method("reset_runtime_state"):
+				inventory.reset_runtime_state()
 		"add_uploaded_legendary":
 			progress.add_uploaded_legendary_progress(1)
 		"unlock_next":

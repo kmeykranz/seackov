@@ -34,17 +34,10 @@ func build(containers: Dictionary, layout: Dictionary) -> Dictionary:
 	var chests := _spawn_chests(containers["cover"], layout["chests"], forbidden_polygons)
 	var spawn_anchor_position := _push_point_outside_forbidden(Vector2(spawn_anchor_spec["position"]), forbidden_polygons, 120.0)
 
-<< << << < HEAD
 	var player := _spawn_player(containers["actors"], spawn_anchor_position, world_rect)
 	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"], forbidden_polygons)
 	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"], forbidden_polygons)
-	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, forbidden_polygons)
-== == == =
-	var player := _spawn_player(containers["actors"], spawn_anchor_spec["position"], world_rect)
-	var anchors := _spawn_anchors(containers["exits"], layout["anchors"], spawn_anchor_spec["id"])
-	var treasures := _spawn_treasures(containers["pickups"], layout["treasures"])
-	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, spawn_anchor_spec["position"])
->> >> >> > dfe2214a9113c6bd0f82766d9904ccaf1790a785
+	var monsters := _spawn_monsters(containers["actors"], layout["monsters"], player, forbidden_polygons, spawn_anchor_position)
 
 	return {
 		"player": player,
@@ -214,11 +207,7 @@ func _spawn_treasures(parent: Node, specs: Array, forbidden_polygons: Array) -> 
 	return treasures
 
 
-<< << << < HEAD
-func _spawn_monsters(parent: Node, specs: Array, player: Node2D, forbidden_polygons: Array) -> Array:
-== == == =
-func _spawn_monsters(parent: Node, specs: Array, player: Node2D, spawn_position: Vector2) -> Array:
->> >> >> > dfe2214a9113c6bd0f82766d9904ccaf1790a785
+func _spawn_monsters(parent: Node, specs: Array, player: Node2D, forbidden_polygons: Array, spawn_position: Vector2) -> Array:
 	var monsters := []
 	const MIN_SPAWN_DISTANCE := 350.0
 	for spec in specs:
@@ -236,7 +225,6 @@ func _spawn_monsters(parent: Node, specs: Array, player: Node2D, spawn_position:
 		monster.configure_avoidance(forbidden_polygons)
 		parent.add_child(monster)
 		monster.configure(_sanitize_patrol_points(spec["points"], forbidden_polygons), player, CollisionLayers.WALL)
-		monster.configure(spec["points"], player, CollisionLayers.WALL)
 
 		# 避免怪物刷在玩家脸上：太近就跳到最远的巡逻角点
 		var pts: Array = spec["points"]

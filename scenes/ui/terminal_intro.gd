@@ -57,10 +57,10 @@ func _build_ui() -> void:
 	panel.anchor_top = 0.5
 	panel.anchor_right = 0.5
 	panel.anchor_bottom = 0.5
-	panel.offset_left = -380.0
-	panel.offset_top = -280.0
-	panel.offset_right = 380.0
-	panel.offset_bottom = 280.0
+	panel.offset_left = -440.0
+	panel.offset_top = -310.0
+	panel.offset_right = 440.0
+	panel.offset_bottom = 310.0
 	var panel_style := StyleBoxFlat.new()
 	panel_style.bg_color = Color(0.04, 0.09, 0.05, 0.96)
 	panel_style.border_width_left = 2
@@ -94,7 +94,7 @@ func _build_ui() -> void:
 	_text_label.scroll_active = false
 	_text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text_label.add_theme_color_override("font_color", Color(0.13, 0.95, 0.33, 1))
-	_text_label.add_theme_font_size_override("normal_font_size", 18)
+	_text_label.add_theme_font_size_override("normal_font_size", 26)
 	var font: FontFile = load("res://assets/ZaoZiGongFangYingLiHeiGuiTi-1.otf")
 	if font != null:
 		_text_label.add_theme_font_override("normal_font", font)
@@ -108,13 +108,13 @@ func _build_ui() -> void:
 	_click_hint.anchor_right = 0.5
 	_click_hint.anchor_bottom = 1.0
 	_click_hint.offset_left = -120.0
-	_click_hint.offset_top = -52.0
+	_click_hint.offset_top = -48.0
 	_click_hint.offset_right = 120.0
-	_click_hint.offset_bottom = -28.0
+	_click_hint.offset_bottom = -22.0
 	_click_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_click_hint.text = "点击任意位置继续..."
 	_click_hint.add_theme_color_override("font_color", Color(0.13, 0.95, 0.33, 0.6))
-	_click_hint.add_theme_font_size_override("font_size", 16)
+	_click_hint.add_theme_font_size_override("font_size", 20)
 	if font != null:
 		_click_hint.add_theme_font_override("font", font)
 	add_child(_click_hint)

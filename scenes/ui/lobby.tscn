@@ -60,7 +60,6 @@ theme_override_font_sizes/font_size = 30
 text = "关于"
 
 [node name="save_debug" type="Button" parent="." unique_id=437471515]
-visible = false
 layout_mode = 0
 offset_left = 812.0
 offset_top = 696.0
@@ -81,6 +80,16 @@ scale = Vector2(1.425, 1.425)
 theme_override_fonts/font = ExtResource("4_rqagm")
 theme_override_font_sizes/font_size = 30
 text = "退出"
+
+[node name="reset" type="Button" parent="." unique_id=2130241477]
+layout_mode = 0
+offset_left = 40.0
+offset_top = 1000.0
+offset_right = 122.0
+offset_bottom = 1046.0
+theme_override_fonts/font = ExtResource("4_rqagm")
+theme_override_font_sizes/font_size = 37
+text = "重置"
 
 [node name="DebugPanel" type="Panel" parent="." unique_id=1114733126]
 visible = false
