@@ -269,6 +269,7 @@ func _test_scene_split_and_visibility() -> void:
 	_assert(game.get_cover_kind_count("seaweed") > 0, "seaweed scenes are instanced")
 	_assert(game.get_cover_kind_count("coral") > 0, "coral scenes are instanced")
 	_assert(game.has_node("World/Exits/AnchorExit"), "anchor scene is instanced")
+	_assert(_all_spawned_entities_avoid_forbidden_zones(game), "spawned run entities avoid collision and no-monster zones")
 	_assert(game.has_node("World/Fog"), "region fog container exists")
 	_assert(game.has_node("RunHud"), "HUD scene is instanced")
 	_assert(game.has_node("StorageTransferUi"), "run backpack UI is instanced")
@@ -698,6 +699,70 @@ func _count_specs_in_region(specs: Array, region_id: int) -> int:
 		if int(spec.get("region_id", 0)) == region_id:
 			count += 1
 	return count
+
+
+func _all_spawned_entities_avoid_forbidden_zones(run_scene: Node) -> bool:
+	var forbidden_polygons := _forbidden_zone_polygons(run_scene.world)
+	if forbidden_polygons.is_empty():
+		return true
+
+	if _point_in_any_polygon(run_scene.player.global_position, forbidden_polygons):
+		return false
+
+	for anchor in run_scene.anchors:
+		if _point_in_any_polygon(anchor.global_position, forbidden_polygons):
+			return false
+
+	for chest in run_scene.chests:
+		if _point_in_any_polygon(chest.global_position, forbidden_polygons):
+			return false
+
+	for treasure in run_scene.treasures_container.get_children():
+		if _point_in_any_polygon(treasure.global_position, forbidden_polygons):
+			return false
+
+	for cover in run_scene.world.get_node("Cover").get_children():
+		if bool(cover.get_meta("boundary_segment", false)):
+			continue
+		if String(cover.get_meta("cover_kind", "")) in ["reef", "wreck"] and _point_in_any_polygon(cover.global_position, forbidden_polygons):
+			return false
+		if String(cover.get_meta("cover_kind", "")) == "seaweed" and _point_in_any_polygon(cover.global_position, forbidden_polygons):
+			return false
+		if String(cover.get_meta("cover_kind", "")) == "coral" and _point_in_any_polygon(cover.global_position, forbidden_polygons):
+			return false
+
+	for monster in run_scene.monsters:
+		if _point_in_any_polygon(monster.global_position, forbidden_polygons):
+			return false
+
+	return true
+
+
+func _forbidden_zone_polygons(world: Node) -> Array:
+	var polygons := []
+	if world == null:
+		return polygons
+
+	for zone_name in ["collision", "no-monster"]:
+		var zone := world.get_node_or_null(zone_name)
+		if zone == null:
+			continue
+		for child in zone.get_children():
+			if not (child is CollisionPolygon2D):
+				continue
+			var world_polygon := PackedVector2Array()
+			for point in child.polygon:
+				world_polygon.append(zone.to_global(point))
+			if not world_polygon.is_empty():
+				polygons.append(world_polygon)
+	return polygons
+
+
+func _point_in_any_polygon(point: Vector2, polygons: Array) -> bool:
+	for polygon in polygons:
+		if Geometry2D.is_point_in_polygon(point, polygon):
+			return true
+	return false
 
 
 func _count_treasure_rarity_in_region(specs: Array, region_id: int, rarity: String) -> int:

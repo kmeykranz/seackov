@@ -70,7 +70,8 @@ radius = 34.0
 script = ExtResource("1")
 
 [node name="VisionCone" type="Polygon2D" parent="." unique_id=545258184]
-color = Color(1, 0.18, 0.1, 0.24)
+color = Color(1, 0.18039216, 0.101960786, 0.11372549)
+uv = PackedVector2Array(-158.5, -10, -56, 24.5, 14.5, -39)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=518161787]
 shape = SubResource("CircleShape2D_monster")
